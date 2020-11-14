@@ -2,4 +2,9 @@
 .*.swp
 
 # Python
-*.pyc
+__pycache__/
+*.py[cod]
+
+# Build
+build/
+dist/
