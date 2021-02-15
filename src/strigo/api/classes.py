@@ -12,6 +12,10 @@ def list(client: Client) -> List[Class]:
     return client.get('/classes', Class)
 
 
+def search(client: Client, name: str) -> List[Class]:
+    return [cls for cls in list(client) if cls.name == name]
+
+
 def get(client: Client, class_id: str) -> Class:
     return client.get(f"/classes/{class_id}", Class)
 

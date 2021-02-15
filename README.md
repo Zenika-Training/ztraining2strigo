@@ -33,6 +33,7 @@ usage: ztraining2strigo [-h] [--config CONFIG] COMMAND ...
 
 positional arguments:
   COMMAND          sub-command help
+    create         Create config for new Strigo class. The class parameters are asked interactively.
     retrieve       Retrieve config from existing Strigo class
 
 optional arguments:
@@ -64,6 +65,22 @@ This command can be used to create the [configuration](#configuration) from exis
 After launching this command, you can:
  - Edit the generated configuration
  - Reorganize the scripts to mutualize if possible/necessary
+
+### Create configuration from scratch
+
+```shell-session
+$ ztraining2strigo create --help
+usage: ztraining2strigo create [-h]
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+This command can be used to create a [configuration](#configuration) and the corresponding Strigo class.
+
+- All necessary elements of a Strigo class will be asked interactively
+- The configuration will be stored inside a `strigo.json` file at the root of your training (or one referenced by `--config`)
+- The class will be created on Strigo
 
 ## Configuration
 
