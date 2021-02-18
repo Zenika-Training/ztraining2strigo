@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import Any, Dict, List, Union
 
 from ..models.resources import Resource, WebviewLink
 from . import get_scripts_folder
@@ -83,6 +83,10 @@ class ResourceImageConfig:
     image_user: str
     ec2_region: str = None
 
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> ResourceImageConfig:
+        return ResourceImageConfig(**d)
+
 
 @dataclass
 class ResourceConfig:
@@ -92,6 +96,13 @@ class ResourceConfig:
     init_scripts: List[str] = field(default_factory=list)
     post_launch_scripts: List[str] = field(default_factory=list)
     webview_links: List[WebviewLink] = field(default_factory=list)
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> ResourceConfig:
+        if not isinstance(d['image'], str):
+            d['image'] = ResourceImageConfig.from_dict(d['image'])
+        d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
+        return ResourceConfig(**d)
 
     @staticmethod
     def from_strigo(resource: Resource) -> ResourceConfig:

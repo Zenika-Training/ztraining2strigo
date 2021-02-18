@@ -4,9 +4,11 @@ import argparse
 import os
 import sys
 from getpass import getpass
+from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, List
+from typing import Any, Callable, List
 
+from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
 from strigo.api import presentations as presentations_api
 from strigo.api import resources as resources_api
@@ -15,7 +17,8 @@ from strigo.configs import bootstrap_config_file
 from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
 from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_DEFAULT_REGION, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
-from strigo.models.resources import WebviewLink
+from strigo.models.classes import Class
+from strigo.models.resources import Resource, WebviewLink
 
 from .notes_parser import parse_notes
 
@@ -52,6 +55,140 @@ def _confirm(prompt: str) -> bool:
             return False
         else:
             print('Please answer by y[es] or n[o]', file=sys.stderr)
+
+
+def _are_nonish_equals(a: Any, b: Any) -> bool:
+    return (
+        (a is None or a is UNDEFINED or a == '' or a == [] or a == {})
+        and
+        (b is None or b is UNDEFINED or b == '' or b == [] or b == {})
+    )
+
+
+def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False) -> None:
+    messages_prefix = ''
+    if dry_run:
+        messages_prefix = '(dry-run) '
+
+    if not existing_class:
+        existing_class = classes_api.get(client, config.id)
+
+    needs_update = False
+    if config.name != existing_class.name:
+        print(f"Will update class name from {existing_class.name} to {config.name}")
+        needs_update = True
+    if config.description != existing_class.description:
+        print(f"Will update class description from {existing_class.description} to {config.description}")
+        needs_update = True
+    if needs_update and not dry_run:
+        print(f"{messages_prefix}Updating class {existing_class.id}")
+        classes_api.update(client, existing_class.id, config.name, config.description)
+
+    existing_presentations = presentations_api.list(client, existing_class.id)
+    existing_presentations_per_filename = {p.filename: p for p in existing_presentations}
+    presentations_per_filename = {Path(p.file).name: p for p in config.presentations}
+    for presentation in (p for p in existing_presentations if p.filename not in presentations_per_filename):
+        print(f"{messages_prefix}Deleting existing presentation with id {presentation.id} of file {presentation.filename}")
+        if not dry_run:
+            presentations_api.delete(client, existing_class.id, presentation.id)
+    for presentation in (p for f, p in presentations_per_filename.items() if f not in existing_presentations_per_filename):
+        print(f"{messages_prefix}Creating presentation {presentation.file}")
+        if not dry_run:
+            created_presentation = presentations_api.create(client, existing_class.id, Path(presentation.file))
+            if created_presentation:
+                presentations_api.create_notes(client, existing_class.id, created_presentation.id, parse_notes(Path(presentation.notes_source)))
+    for presentation, existing_presentation in ((p, existing_presentations_per_filename[f]) for f, p in presentations_per_filename.items() if f in existing_presentations_per_filename):
+        notes = parse_notes(Path(presentation.notes_source))
+        needs_update = presentation.file_size() != existing_presentation.size_bytes
+        if not needs_update:  # Don't verify checksum if update is already needed
+            needs_update = presentation.file_md5_sum() != existing_presentation.md5
+        if needs_update:
+            print(f"{messages_prefix}Updating presentation {presentation.file}")
+            if not dry_run:
+                updated_presentation = presentations_api.update(client, existing_class.id, existing_presentation.id, Path(presentation.file))
+                if updated_presentation:
+                    presentations_api.create_notes(client, existing_class.id, updated_presentation.id, notes)
+        else:
+            existing_notes = presentations_api.get_notes(client, existing_class.id, existing_presentation.id)
+            if notes != existing_notes:
+                print(f"{messages_prefix}Updating presentation notes for {presentation.file}")
+                if not dry_run:
+                    presentations_api.create_notes(client, existing_class.id, existing_presentation.id, notes)
+
+    existing_resources = resources_api.list(client, existing_class.id)
+    for index, (resource, existing_resource) in enumerate(zip_longest(config.resources, existing_resources)):
+        resource: ResourceConfig
+        existing_resource: Resource
+        if resource is None:
+            print(f"{messages_prefix}Deleting machine {index} named {existing_resource.name}")
+            if not dry_run:
+                resources_api.delete(client, existing_class.id, existing_resource.id)
+        else:
+            image = resource.image
+            if isinstance(image, str):
+                image = ResourceImageConfig(
+                    STRIGO_IMAGES[image]['amis'][STRIGO_DEFAULT_REGION],
+                    STRIGO_IMAGES[image]['user'],
+                    STRIGO_DEFAULT_REGION
+                )
+
+            init_script = ''
+            for script in resource.init_scripts:
+                with Path(script).open() as f:
+                    init_script += f.read() + '\n'
+            if init_script == '':
+                init_script = UNDEFINED
+            post_launch_script = ''
+
+            for script in resource.post_launch_scripts:
+                with Path(script).open() as f:
+                    post_launch_script += f.read() + '\n'
+            if post_launch_script == '':
+                post_launch_script = UNDEFINED
+
+            if existing_resource is None:
+                print(f"{messages_prefix}Creating machine {index} named {resource.name}")
+                if not dry_run:
+                    resources_api.create(
+                        client, existing_class.id, resource.name, image.image_id, image.image_user,
+                        resource.webview_links, post_launch_script, init_script,
+                        image.ec2_region, resource.instance_type
+                    )
+            else:
+                needs_update = False
+                if resource.name != existing_resource.name:
+                    print(f"Will update machine {index} name from {existing_resource.name} to {resource.name}")
+                    needs_update = True
+                if resource.instance_type != existing_resource.instance_type:
+                    print(f"Will update machine {index} type from {existing_resource.instance_type} to {resource.instance_type}")
+                    needs_update = True
+                if image.image_id != existing_resource.image_id:
+                    print(f"Will update machine {index} image from {existing_resource.image_id} to {image.image_id}")
+                    needs_update = True
+                if image.image_user != existing_resource.image_user:
+                    print(f"Will update machine {index} image user from {existing_resource.image_user} to {image.image_user}")
+                    needs_update = True
+                if image.ec2_region != existing_resource.ec2_region:
+                    print(f"Will update machine {index} image regions from {existing_resource.ec2_region} to {image.ec2_region}")
+                    needs_update = True
+                if init_script != existing_resource.userdata and not _are_nonish_equals(init_script, existing_resource.userdata):
+                    print(f"Will update machine {index} init script")
+                    needs_update = True
+                if post_launch_script != existing_resource.post_launch_script and not _are_nonish_equals(post_launch_script, existing_resource.post_launch_script):
+                    print(f"Will update machine {index} post launch script")
+                    needs_update = True
+                if resource.webview_links != existing_resource.webview_links:
+                    print(f"Will update machine {index} webview links")
+                    needs_update = True
+                if needs_update:
+                    print(f"{messages_prefix}Updating machine {index} named {resource.name}")
+                    if not dry_run:
+                        resources_api.update(
+                            client, existing_class.id, existing_resource.id,
+                            resource.name, image.image_id, image.image_user,
+                            resource.webview_links, post_launch_script, init_script,
+                            image.ec2_region, resource.instance_type
+                        )
 
 
 def create(client: Client, args: argparse.Namespace) -> None:
@@ -140,30 +277,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
     strigo_config.write(config_file)
     print(f"Config stored in '{config_file.absolute()}'")
 
-    print("Uploading Strigo class presentation...")
-    presentation = presentations_api.create(client, cls.id, presentation)
-    if presentation:
-        presentations_api.create_notes(client, cls.id, presentation.id, parse_notes(Path(presentation_config.notes_source)))
-
-    print("Adding Strigo class resources...")
-    for resource in resources:
-        image = resource.image
-        if isinstance(image, str):
-            image = ResourceImageConfig(
-                STRIGO_IMAGES[image]['amis'][STRIGO_DEFAULT_REGION],
-                STRIGO_IMAGES[image]['user'],
-                STRIGO_DEFAULT_REGION
-            )
-        userdata = ''
-        for script in resource.init_scripts:
-            with Path(script).open() as f:
-                userdata += f.read() + '\n'
-        post_launch_script = ''
-        for script in resource.post_launch_scripts:
-            with Path(script).open() as f:
-                post_launch_script += f.read() + '\n'
-        resources_api.create(client, cls.id, resource.name, image.image_id, image.image_user, resource.webview_links, post_launch_script, userdata, image.ec2_region, resource.instance_type)
-
+    _to_strigo(client, strigo_config, existing_class=cls)
     print("Done!")
 
 
@@ -177,6 +291,15 @@ def retrieve(client: Client, args: argparse.Namespace) -> None:
     print(f"Config from Strigo stored in '{config_file.absolute()}'")
 
 
+def update(client: Client, args: argparse.Namespace) -> None:
+    if not args.config.exists():
+        print(f"ERROR: Config file {args.config} does not exists.", file=sys.stderr)
+        exit(1)
+
+    strigo_config = ClassConfig.load(args.config)
+    _to_strigo(client, strigo_config, dry_run=args.dry_run)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser('ztraining2strigo')
     parser.add_argument('--config', default='strigo.json', type=Path)
@@ -188,6 +311,10 @@ def main() -> None:
     parser_retrieve = subparsers.add_parser('retrieve', help='Retrieve config from existing Strigo class')
     parser_retrieve.add_argument('class_id', metavar='CLASS_ID', type=str, help='Existing Strigo class ID')
     parser_retrieve.set_defaults(func=retrieve)
+
+    parser_update = subparsers.add_parser('update', help='Update Strigo class from config')
+    parser_update.add_argument('--dry-run', '-n', action='store_true', help='Do not perform update')
+    parser_update.set_defaults(func=update)
 
     args = parser.parse_args()
 

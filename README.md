@@ -35,6 +35,7 @@ positional arguments:
   COMMAND          sub-command help
     create         Create config for new Strigo class. The class parameters are asked interactively.
     retrieve       Retrieve config from existing Strigo class
+    update         Update Strigo class from config
 
 optional arguments:
   -h, --help       show this help message and exit
@@ -81,6 +82,22 @@ This command can be used to create a [configuration](#configuration) and the cor
 - All necessary elements of a Strigo class will be asked interactively
 - The configuration will be stored inside a `strigo.json` file at the root of your training (or one referenced by `--config`)
 - The class will be created on Strigo
+
+### Update Strigo class from configuration
+
+```shell-session
+$ ztraining2strigo update --help
+usage: ztraining2strigo update [-h] [--dry-run]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --dry-run, -n  Do not perform update
+```
+
+This command can be used to update a Strigo class from local [configuration](#configuration).
+
+- Update is idempotent: if Strigo class is already as described by configuration, nothing will be done
+- It is possible to check if an updated should be performed by using the `--dry-run` option
 
 ## Configuration
 
