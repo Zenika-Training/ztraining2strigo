@@ -6,7 +6,7 @@ import sys
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Iterator, List
 
 from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
@@ -55,6 +55,12 @@ def _confirm(prompt: str) -> bool:
             return False
         else:
             print('Please answer by y[es] or n[o]', file=sys.stderr)
+
+
+def _get_scripts_content(scripts: List[str]) -> Iterator[str]:
+    for script in scripts:
+        with Path(script).open() as f:
+            yield f.read()
 
 
 def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False) -> None:
@@ -124,18 +130,14 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                     STRIGO_DEFAULT_REGION
                 )
 
-            init_script = ''
-            for script in resource.init_scripts:
-                with Path(script).open() as f:
-                    init_script += f.read() + '\n'
-            if init_script == '':
+            if resource.init_scripts:
+                init_script = '\n'.join(_get_scripts_content(resource.init_scripts))
+            else:
                 init_script = UNDEFINED
-            post_launch_script = ''
 
-            for script in resource.post_launch_scripts:
-                with Path(script).open() as f:
-                    post_launch_script += f.read() + '\n'
-            if post_launch_script == '':
+            if resource.post_launch_scripts:
+                post_launch_script = '\n'.join(_get_scripts_content(resource.post_launch_scripts))
+            else:
                 post_launch_script = UNDEFINED
 
             if existing_resource is None:
