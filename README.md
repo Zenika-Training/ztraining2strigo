@@ -101,11 +101,12 @@ This command can be used to create a [configuration](#configuration) and the cor
 
 ```shell-session
 $ ztraining2strigo update --help
-usage: ztraining2strigo update [-h] [--dry-run]
+usage: ztraining2strigo update [-h] [--dry-run] [--diff]
 
 optional arguments:
   -h, --help     show this help message and exit
   --dry-run, -n  Do not perform update
+  --diff, -d     Display diff of changes to apply in machines scripts
 ```
 
 This command can be used to update a Strigo class from local [configuration](#configuration).

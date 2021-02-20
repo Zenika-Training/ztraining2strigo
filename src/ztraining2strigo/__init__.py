@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+from difflib import unified_diff
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
@@ -63,7 +64,16 @@ def _get_scripts_content(scripts: List[str]) -> Iterator[str]:
             yield f.read()
 
 
-def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False) -> None:
+def _show_diff(a: str, b: str, prefix: str = '\t') -> None:
+    diff_lines = unified_diff(
+        [] if not a else a.splitlines(keepends=True),
+        [] if not b else b.splitlines(keepends=True),
+        fromfile='strigo', tofile='local'
+    )
+    sys.stdout.writelines(prefix + line for line in diff_lines)
+
+
+def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False, diff: bool = False) -> None:
     messages_prefix = ''
     if dry_run:
         messages_prefix = '(dry-run) '
@@ -167,9 +177,13 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                     needs_update = True
                 if init_script != existing_resource.userdata and (init_script or existing_resource.userdata):
                     print(f"Will update machine {index} init script")
+                    if diff:
+                        _show_diff(existing_resource.userdata, init_script)
                     needs_update = True
                 if post_launch_script != existing_resource.post_launch_script and (post_launch_script or existing_resource.post_launch_script):
                     print(f"Will update machine {index} post launch script")
+                    if diff:
+                        _show_diff(existing_resource.post_launch_script, post_launch_script)
                     needs_update = True
                 if resource.webview_links != existing_resource.webview_links:
                     print(f"Will update machine {index} webview links")
@@ -291,7 +305,7 @@ def update(client: Client, args: argparse.Namespace) -> None:
         exit(1)
 
     strigo_config = ClassConfig.load(args.config)
-    _to_strigo(client, strigo_config, dry_run=args.dry_run)
+    _to_strigo(client, strigo_config, dry_run=args.dry_run, diff=args.diff)
 
 
 def main() -> None:
@@ -308,6 +322,7 @@ def main() -> None:
 
     parser_update = subparsers.add_parser('update', help='Update Strigo class from config')
     parser_update.add_argument('--dry-run', '-n', action='store_true', help='Do not perform update')
+    parser_update.add_argument('--diff', '-d', action='store_true', help='Display diff of changes to apply in machines scripts')
     parser_update.set_defaults(func=update)
 
     args = parser.parse_args()
