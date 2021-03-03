@@ -22,6 +22,20 @@ An alternative is to follow the procedure for [other OS](#other-os).
     pip install ztraining2strigo-x.y.z-py3-none-any.whl
     ```
 
+### Docker
+
+1. Get the image `zenika/ztraining2strigo:x.y.z`:
+
+    ```shell
+    docker image pull zenika/ztraining2strigo:x.y.z
+    ```
+
+2. Define an alias `ztraining2strigo`:
+
+    ```shell
+    alias ztraining2strigo='docker container run --rm --volume $(pwd):/training --user $(id -u):$(id -g) --env STRIGO_ORG_ID --env STRIGO_API_KEY --interactive --tty zenika/ztraining2strigo:x.y.z'
+    ```
+
 ## Usage
 
 1. Go to the root of your training
@@ -184,4 +198,10 @@ Building requirement is a Python environment >= 3.7.
 
 ```powershell
 .\build_windows.ps1
+```
+
+## Docker image
+
+```shell
+docker image build --tag zenika/ztraining2strigo .
 ```
