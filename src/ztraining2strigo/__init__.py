@@ -6,7 +6,7 @@ import sys
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Callable, List
 
 from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
@@ -55,14 +55,6 @@ def _confirm(prompt: str) -> bool:
             return False
         else:
             print('Please answer by y[es] or n[o]', file=sys.stderr)
-
-
-def _are_nonish_equals(a: Any, b: Any) -> bool:
-    return (
-        (a is None or a is UNDEFINED or a == '' or a == [] or a == {})
-        and
-        (b is None or b is UNDEFINED or b == '' or b == [] or b == {})
-    )
 
 
 def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False) -> None:
@@ -171,10 +163,10 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                 if image.ec2_region != existing_resource.ec2_region:
                     print(f"Will update machine {index} image regions from {existing_resource.ec2_region} to {image.ec2_region}")
                     needs_update = True
-                if init_script != existing_resource.userdata and not _are_nonish_equals(init_script, existing_resource.userdata):
+                if init_script != existing_resource.userdata and (init_script or existing_resource.userdata):
                     print(f"Will update machine {index} init script")
                     needs_update = True
-                if post_launch_script != existing_resource.post_launch_script and not _are_nonish_equals(post_launch_script, existing_resource.post_launch_script):
+                if post_launch_script != existing_resource.post_launch_script and (post_launch_script or existing_resource.post_launch_script):
                     print(f"Will update machine {index} post launch script")
                     needs_update = True
                 if resource.webview_links != existing_resource.webview_links:
