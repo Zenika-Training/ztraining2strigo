@@ -23,7 +23,7 @@ from strigo.models.resources import Resource, WebviewLink
 
 from .notes_parser import parse_notes
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 
 def _prompt(prompt: str, is_valid: Callable[[str], bool] = lambda _: True, choices: List[str] = None) -> str:
