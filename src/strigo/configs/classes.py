@@ -16,13 +16,17 @@ from .resources import ResourceConfig
 class ClassConfig:
     name: str
     id: str = None
-    description: str = None
+    description: List[str] = field(default_factory=list)
     presentations: List[PresentationConfig] = field(default_factory=list)
     resources: List[ResourceConfig] = field(default_factory=list)
 
     def write(self, config_path: Path) -> None:
         with config_path.open('w') as f:
             json.dump(asdict(self), f, indent=2)
+
+    @property
+    def strigo_description(self) -> str:
+        return '\n'.join(self.description)
 
     @staticmethod
     def load(config_path: Path) -> ClassConfig:
@@ -32,6 +36,8 @@ class ClassConfig:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> ClassConfig:
+        if isinstance(d['description'], str):
+            d['description'] = d['description'].split('\n')
         d['presentations'] = [PresentationConfig.from_dict(e) for e in d['presentations']]
         d['resources'] = [ResourceConfig.from_dict(e) for e in d['resources']]
         return ClassConfig(**d)
@@ -41,7 +47,7 @@ class ClassConfig:
         return ClassConfig(
             id=cls.id,
             name=cls.name,
-            description=cls.description,
+            description=cls.str_description.split('\n'),
             presentations=[PresentationConfig.from_strigo(p) for p in presentations],
             resources=[ResourceConfig.from_strigo(r) for r in cls.resources]
         )

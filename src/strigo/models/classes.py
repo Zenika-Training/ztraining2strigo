@@ -35,6 +35,10 @@ class Class:
     description: str = None
     presentation_filename: str = None
 
+    @property
+    def str_description(self) -> str:
+        return self.description or ''
+
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d['created_at'] = format_date(self.created_at)

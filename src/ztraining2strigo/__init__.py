@@ -85,12 +85,13 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
     if config.name != existing_class.name:
         print(f"Will update class name from {existing_class.name} to {config.name}")
         needs_update = True
-    if config.description != existing_class.description:
-        print(f"Will update class description from {existing_class.description} to {config.description}")
+    if config.strigo_description != existing_class.str_description:
+        print(f"Will update class description")
+        _show_diff(existing_class.str_description + '\n', config.strigo_description + '\n')
         needs_update = True
     if needs_update and not dry_run:
         print(f"{messages_prefix}Updating class {existing_class.id}")
-        classes_api.update(client, existing_class.id, config.name, config.description)
+        classes_api.update(client, existing_class.id, config.name, config.strigo_description or UNDEFINED)
 
     existing_presentations = presentations_api.list(client, existing_class.id)
     existing_presentations_per_filename = {p.filename: p for p in existing_presentations}
@@ -212,10 +213,13 @@ def create(client: Client, args: argparse.Namespace) -> None:
 
     strigo_config = ClassConfig(name)
 
-    description = input('Please enter Strigo class description (can be empty): ').strip()
-    if not description:
-        description = None
-    strigo_config.description = description
+    print('Please enter Strigo class description (can be empty, can be multiline, Ctrl-D or Ctrl-Z (windows) to validate):')
+    while True:
+        try:
+            line = input().strip()
+            strigo_config.description.append(line)
+        except EOFError:
+            break
 
     presentation = _prompt(
         'Please enter path to presentation file (typically "pdf/Zenika-Formation-xxx-Slides.pdf" or "pdf/Zenika-training-material-Slides.pdf")',
@@ -280,7 +284,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
     strigo_config.resources = resources
 
     print("Creating Strigo class...")
-    cls = classes_api.create(client, strigo_config.name, strigo_config.description)
+    cls = classes_api.create(client, strigo_config.name, strigo_config.strigo_description or UNDEFINED)
     strigo_config.id = cls.id
     strigo_config.write(config_file)
     print(f"Config stored in '{config_file.absolute()}'")

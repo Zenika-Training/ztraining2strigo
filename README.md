@@ -120,7 +120,7 @@ Configuration is stored in JSON format inside a `strigo.json` file at the root o
 
 - `id`: the Strigo ID of the class, shouldn't be changed
 - `name`: the name of the class
-- `description`: the description of the class (can be `null` or empty)
+- `description`: the list of lines of description of the class (can be empty list `[]`)
 - `presentations`: the list of presentation materials, can only contains 1 element for now (Strigo model)
   - `file`: the path to presentation file (typically `pdf/Zenika-Formation-xxx-Slides.pdf` or `pdf/Zenika-training-material-Slides.pdf`)
   - `notes_source`: the path to the listing of slides for notes extraction (should be `Slides/slides.json`)
@@ -141,9 +141,13 @@ Example:
 
 ```json
 {
+  "name": "My training",
   "id": "43t8s3ZNSGwy89Ffo",
-  "name": "test infra4lab bis",
-  "description": null,
+  "description": [
+    "The description of the training",
+    "",
+    "Can be on multiple lines in a list"
+  ],
   "presentations": [
     {
       "file": "pdf/Zenika-training-material-Slides.pdf",
