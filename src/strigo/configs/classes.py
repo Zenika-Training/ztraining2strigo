@@ -22,7 +22,7 @@ class ClassConfig:
 
     def write(self, config_path: Path) -> None:
         with config_path.open('w') as f:
-            json.dump(asdict(self), f, indent=2, sort_keys=True)
+            json.dump(asdict(self), f, indent=2)
 
     @staticmethod
     def load(config_path: Path) -> ClassConfig:
