@@ -36,6 +36,16 @@ An alternative is to follow the procedure for [other OS](#other-os).
     alias ztraining2strigo='docker container run --rm --volume $(pwd):/training --user $(id -u):$(id -g) --env STRIGO_ORG_ID --env STRIGO_API_KEY --interactive --tty zenika/ztraining2strigo:x.y.z'
     ```
 
+## Strigo authentication
+
+1. Go to https://app.strigo.io/settings#account
+2. Scroll to section "Authentication Credentials"
+3. Define the environment variables:
+  - `STRIGO_ORG_ID` with the value of "Organization ID"
+  - `STRIGO_API_KEY` with the value of "API Key"
+
+If the environment variables are not set, the Strigo credentials will be asked when launching the tool.
+
 ## Usage
 
 1. Go to the root of your training
