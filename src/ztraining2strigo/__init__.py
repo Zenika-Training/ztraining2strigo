@@ -104,8 +104,7 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
         print(f"{messages_prefix}Creating presentation {presentation.file}")
         if not dry_run:
             created_presentation = presentations_api.create(client, existing_class.id, Path(presentation.file))
-            if created_presentation:
-                presentations_api.create_notes(client, existing_class.id, created_presentation.id, parse_notes(Path(presentation.notes_source)))
+            presentations_api.create_notes(client, existing_class.id, created_presentation.id, parse_notes(Path(presentation.notes_source)))
     for presentation, existing_presentation in ((p, existing_presentations_per_filename[f]) for f, p in presentations_per_filename.items() if f in existing_presentations_per_filename):
         notes = parse_notes(Path(presentation.notes_source))
         needs_update = presentation.file_size() != existing_presentation.size_bytes
@@ -115,8 +114,7 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
             print(f"{messages_prefix}Updating presentation {presentation.file}")
             if not dry_run:
                 updated_presentation = presentations_api.update(client, existing_class.id, existing_presentation.id, Path(presentation.file))
-                if updated_presentation:
-                    presentations_api.create_notes(client, existing_class.id, updated_presentation.id, notes)
+                presentations_api.create_notes(client, existing_class.id, updated_presentation.id, notes)
         else:
             existing_notes = presentations_api.get_notes(client, existing_class.id, existing_presentation.id)
             if notes != existing_notes:
