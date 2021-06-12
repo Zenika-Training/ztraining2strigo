@@ -19,7 +19,7 @@ from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
 from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_DEFAULT_REGION, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
-from strigo.models.resources import Resource, WebviewLink
+from strigo.models.resources import Resource, WebviewLink, normalize_script
 
 from .notes_parser import parse_notes
 
@@ -140,12 +140,12 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                 )
 
             if resource.init_scripts:
-                init_script = '\n'.join(_get_scripts_content(resource.init_scripts))
+                init_script = normalize_script('\n'.join(_get_scripts_content(resource.init_scripts)))
             else:
                 init_script = UNDEFINED
 
             if resource.post_launch_scripts:
-                post_launch_script = '\n'.join(_get_scripts_content(resource.post_launch_scripts))
+                post_launch_script = normalize_script('\n'.join(_get_scripts_content(resource.post_launch_scripts)))
             else:
                 post_launch_script = UNDEFINED
 

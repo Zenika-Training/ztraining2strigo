@@ -5,6 +5,13 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List
 
 
+def normalize_script(s: str):
+    s = (s or '').strip()
+    if s:
+        s += '\n'
+    return s
+
+
 @dataclass
 class WebviewLink:
     name: str
@@ -40,4 +47,6 @@ class Resource:
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Resource:
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
+        d['post_launch_script'] = normalize_script(d['post_launch_script'])
+        d['userdata'] = normalize_script(d['userdata'])
         return Resource(**d)
