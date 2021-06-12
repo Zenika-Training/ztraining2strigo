@@ -4,6 +4,7 @@ from email import message
 
 import http.client
 import json
+import os
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Type, TypeVar, Union
@@ -22,6 +23,8 @@ class Client:
             self._connection = http.client.HTTPSConnection(parse_result.hostname, parse_result.port)
         else:
             self._connection = http.client.HTTPConnection(parse_result.hostname, parse_result.port)
+        if bool(os.environ.get('Z2S_TRACE_HTTP', False)):
+            self._connection.set_debuglevel(1)
         self._path = parse_result.path
         self._token = f"{organization_id}:{api_key}"
 
@@ -98,6 +101,8 @@ class Client:
         self._handle_raw_error(response, raw_data, [http.client.NO_CONTENT])
 
     def _handle_raw_error(self, response: http.client.HTTPResponse, raw_data: bytes, expected_statuses: List[int] = [http.client.OK, http.client.UNPROCESSABLE_ENTITY]) -> None:
+        if self._connection.debuglevel > 0:
+            print("reply:", repr(raw_data))
         try:
             data = json.loads(raw_data)
             if data['result'] == 'failure':

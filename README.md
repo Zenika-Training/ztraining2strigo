@@ -33,7 +33,7 @@ An alternative is to follow the procedure for [other OS](#other-os).
 2. Define an alias `ztraining2strigo`:
 
     ```shell
-    alias ztraining2strigo='docker container run --rm --volume $(pwd):/training --user $(id -u):$(id -g) --env STRIGO_ORG_ID --env STRIGO_API_KEY --interactive --tty zenika/ztraining2strigo:x.y.z'
+    alias ztraining2strigo='docker container run --rm --volume $(pwd):/training --user $(id -u):$(id -g) --env STRIGO_ORG_ID --env STRIGO_API_KEY --env Z2S_TRACE_HTTP --interactive --tty zenika/ztraining2strigo:x.y.z'
     ```
 
 ## Strigo authentication
@@ -203,20 +203,24 @@ Example:
 
 Building requirement is a Python environment >= 3.7.
 
-## Python wheel
+### Python wheel
 
 ```shell
 ./build.sh
 ```
 
-## Windows binary
+### Windows binary
 
 ```powershell
 .\build_windows.ps1
 ```
 
-## Docker image
+### Docker image
 
 ```shell
 docker image build --tag zenika/ztraining2strigo .
 ```
+
+## Debugging
+
+You can activate HTTP traces by setting the environment variable `Z2S_TRACE_HTTP` to `1` or `True`.
