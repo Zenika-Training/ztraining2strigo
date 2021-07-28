@@ -1,0 +1,78 @@
+version: 2.1
+
+orbs:
+  docker: circleci/docker@1.6.0
+  win: circleci/windows@2.2.0
+
+jobs:
+  build-wheel:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Build wheel
+          command: ./build.sh
+      - store_artifacts:
+          path: dist/
+
+  build-exe:
+    executor:
+      name: win/default
+    steps:
+      - checkout
+      - run:
+          name: Build exe
+          command: .\build_win.ps1
+      - store_artifacts:
+          path: dist\
+
+workflows:
+  version: 2.0
+
+  wheel:
+    jobs:
+      - build-wheel:
+          filters:
+            tags:
+              only: /\d\.\d.\d/
+            branches:
+              ignore: /.*/
+
+  windows-exe:
+    jobs:
+      - build-exe:
+          filters:
+            tags:
+              only: /\d\.\d.\d/
+            branches:
+              ignore: /.*/
+
+  docker:
+    jobs:
+      - docker/publish: &docker-publish-params
+          name: build-and-publish-docker-image-latest
+          image: zenika/ztraining2strigo
+          tag: latest
+          executor: docker/docker
+          use-remote-docker: yes
+          remote-docker-dlc: yes
+          deploy: yes
+          update-description: yes
+          docker-username: DOCKERHUB_USERNAME
+          docker-password: DOCKERHUB_PASS
+          filters:
+            branches:
+              only: main
+          context: docker-hub-zenika
+      - docker/publish:
+          <<: *docker-publish-params
+          name: build-and-publish-docker-image-tag
+          tag: << pipeline.git.tag >>
+          update-description: no
+          filters:
+            tags:
+              only: /\d\.\d.\d/
+            branches:
+              ignore: /.*/
+          context: docker-hub-zenika
