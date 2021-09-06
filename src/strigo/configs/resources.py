@@ -43,6 +43,12 @@ STRIGO_IMAGES = {
       STRIGO_DEFAULT_REGION: 'ami-1e339e71'
     }
   },
+  'ubuntu-20.04': {
+    'user': 'ubuntu',
+    'amis': {
+      STRIGO_DEFAULT_REGION: 'ami-0feb4583c4b758dea'
+    }
+  },
   'amazon-linux-2017.09.1': {
     'user': 'ec2-user',
     'amis': {
