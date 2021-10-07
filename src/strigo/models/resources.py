@@ -47,6 +47,6 @@ class Resource:
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Resource:
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
-        d['post_launch_script'] = normalize_script(d['post_launch_script'])
-        d['userdata'] = normalize_script(d['userdata'])
+        d['post_launch_script'] = normalize_script(d.get('post_launch_script', None))
+        d['userdata'] = normalize_script(d.get('userdata', None))
         return Resource(**d)
