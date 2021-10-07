@@ -128,6 +128,8 @@ This command can be used to update a Strigo class from local [configuration](#co
 
 Configuration is stored in JSON format inside a `strigo.json` file at the root of your training (or one referenced by `--config`).
 
+There is a [JSON Schema](https://json-schema.org/) available at <https://raw.githubusercontent.com/Zenika-Training/ztraining2strigo/main/strigo.schema.json>.
+
 - `id`: the Strigo ID of the class, shouldn't be changed
 - `name`: the name of the class
 - `description`: the list of lines of description of the class (can be empty list `[]`)
@@ -151,6 +153,7 @@ Example:
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/Zenika-Training/ztraining2strigo/main/strigo.schema.json",
   "name": "My training",
   "id": "43t8s3ZNSGwy89Ffo",
   "description": [

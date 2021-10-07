@@ -32,6 +32,7 @@ class ClassConfig:
     def load(config_path: Path) -> ClassConfig:
         with config_path.open() as f:
             raw_config = json.load(f)
+        raw_config.pop('$schema', None)
         return ClassConfig.from_dict(raw_config)
 
     @staticmethod

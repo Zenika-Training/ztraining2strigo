@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zenika.com/strigo.schema.json",
+  "title": "Strigo",
+  "description": "A Zenika Strigo Class configuration",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://raw.githubusercontent.com/Zenika-Training/ztraining2strigo/main/strigo.schema.json"
+    },
+    "id": {
+      "description": "The Strigo ID of the class, shouldn't be changed",
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of the class",
+      "type": "string"
+    },
+    "description": {
+      "description": "The list of lines of description of the class (can be empty list `[]`)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "presentations": {
+      "description": "The list of presentation materials",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "description": "The path to presentation file (typically `pdf/Zenika-Formation-xxx-Slides.pdf` or `pdf/Zenika-training-material-Slides.pdf`)",
+            "type": "string"
+          },
+          "notes_source": {
+            "description": "The path to the listing of slides for notes extraction (should be `Slides/slides.json`)",
+            "type": "string",
+            "default": "Slides/slides.json"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "file"
+        ]
+      }
+    },
+    "resources": {
+      "description": "The list of lab machines",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The display name of the machine",
+            "type": "string"
+          },
+          "instance_type": {
+            "description": "The size of the machine (one of `t3.medium`, `t3.large` or `t3.xlarge`",
+            "type": "string",
+            "enum": [
+              "t3.medium",
+              "t3.large",
+              "t3.xlarge",
+              "t2.medium",
+              "t2.large",
+              "t2.xlarge"
+            ]
+          },
+          "image": {
+            "description": "The machine image, can be the normalized name of the preconfigured Strigo images (lower case, space replaced by simple hyphen `-`), or a custom image",
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "debian-8.7",
+                  "fedora-26",
+                  "ubuntu-14.04.5",
+                  "ubuntu-16.04.2",
+                  "ubuntu-20.04",
+                  "amazon-linux-2017.09.1",
+                  "amazon-linux-v2-2017.09.1",
+                  "centos-7",
+                  "docker-17.09.0-ce",
+                  "windows-server-2016"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "image_id": {
+                    "description": "The AMI ID",
+                    "type": "string",
+                    "pattern": "^ami-[0-9a-f]{8,}$"
+                  },
+                  "image_user": {
+                    "description": "The default user of the AMI",
+                    "type": "string"
+                  },
+                  "ec2_region": {
+                    "description": "The region of the AMI",
+                    "type": "string",
+                    "enum": [
+                      "us-east-2",
+                      "us-east-1",
+                      "us-west-1",
+                      "us-west-2",
+                      "af-south-1",
+                      "ap-east-1",
+                      "ap-south-1",
+                      "ap-northeast-1",
+                      "ap-northeast-2",
+                      "ap-northeast-3",
+                      "ap-southeast-1",
+                      "ap-southeast-2",
+                      "ca-central-1",
+                      "cn-north-1",
+                      "cn-northwest-1",
+                      "eu-central-1",
+                      "eu-west-1",
+                      "eu-west-2",
+                      "eu-west-3",
+                      "eu-south-1",
+                      "eu-north-1",
+                      "me-south-1",
+                      "sa-east-1"
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "image_id",
+                  "image_user"
+                ]
+              }
+            ]
+          },
+          "init_scripts": {
+            "description": "The list of path to init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "post_launch_scripts": {
+            "description": "The list of path to post launch batch scripts (Windows only) to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "webview_links": {
+            "description": "The list of web interfaces of the machine",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "The name of the interface",
+                  "type": "string"
+                },
+                "url": {
+                  "description": "The URL of the interface (something of the form `http://instance.autolab.strigo.io:<port>`)",
+                  "type": "string",
+                  "pattern": "https?://(instance.autolab.strigo.io:[0-9]+|.*)/?.*"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "url"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "instance_type"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "presentations",
+    "resources"
+  ]
+}
