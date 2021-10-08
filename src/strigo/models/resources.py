@@ -4,12 +4,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List
 
-
-def normalize_script(s: str):
-    s = (s or '').strip()
-    if s:
-        s += '\n'
-    return s
+from ..scripts import normalize_script
 
 
 @dataclass
