@@ -99,6 +99,7 @@ class ResourceConfig:
     name: str
     instance_type: str
     image: Union[str, ResourceImageConfig]
+    is_windows: bool = False
     init_scripts: List[str] = field(default_factory=list)
     post_launch_scripts: List[str] = field(default_factory=list)
     webview_links: List[WebviewLink] = field(default_factory=list)
@@ -107,6 +108,8 @@ class ResourceConfig:
     def from_dict(d: Dict[str, Any]) -> ResourceConfig:
         if not isinstance(d['image'], str):
             d['image'] = ResourceImageConfig.from_dict(d['image'])
+        elif d['image'].startswith('windows'):
+            d['is_windows'] = True
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         return ResourceConfig(**d)
 

@@ -139,6 +139,11 @@
               }
             ]
           },
+          "is_windows": {
+            "description": "Flag the machine as a Windows machine to interpret 'init_scripts' as powershell",
+            "type": "boolean",
+            "default": false
+          },
           "init_scripts": {
             "description": "The list of path to init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
             "type": "array",

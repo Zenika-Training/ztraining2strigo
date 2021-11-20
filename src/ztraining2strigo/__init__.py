@@ -141,6 +141,8 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
 
             if resource.init_scripts:
                 init_script = normalize_script('\n'.join(_get_scripts_content(resource.init_scripts)))
+                if resource.is_windows:
+                    init_script = f"<powershell>\n\n{init_script}\n</powershell>\n"
             else:
                 init_script = UNDEFINED
 
