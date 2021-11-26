@@ -108,8 +108,8 @@ class ResourceConfig:
     def from_dict(d: Dict[str, Any]) -> ResourceConfig:
         if not isinstance(d['image'], str):
             d['image'] = ResourceImageConfig.from_dict(d['image'])
-        elif d['image'].startswith('windows'):
-            d['is_windows'] = True
+        if 'is_windows' not in d:
+            d['is_windows'] = _is_windows(d['image'])
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         return ResourceConfig(**d)
 
@@ -119,17 +119,18 @@ class ResourceConfig:
             image = _parse_image(resource.image_id, resource.image_user, resource.ec2_region)
         else:
             image = ResourceImageConfig(resource.image_id, resource.image_user, resource.ec2_region)
+        is_windows = _is_windows(image)
         scripts_folder = get_scripts_folder()
         normalized_resource_name = resource.name.replace('\\s', '_')
         init_scripts = []
         if resource.userdata:
-            script_path = scripts_folder / f"init_{normalized_resource_name}.sh"
+            script_path = scripts_folder / f"init_{normalized_resource_name}.{'ps1' if is_windows else 'sh'}"
             with script_path.open('wt') as f:
-                f.write(resource.userdata)
+                f.write(resource.userdata.replace('<powershell>', '').replace('</powershell>', '').strip() + '\n')
             init_scripts.append(script_path.as_posix())
         post_launch_scripts = []
         if resource.post_launch_script:
-            script_path = scripts_folder / f"post_launch_{normalized_resource_name}.bat"
+            script_path = scripts_folder / f"post_launch_{normalized_resource_name}.ps1"
             with script_path.open('wt') as f:
                 f.write(resource.post_launch_script)
             post_launch_scripts.append(script_path.as_posix())
@@ -137,10 +138,15 @@ class ResourceConfig:
             name=resource.name,
             instance_type=resource.instance_type,
             image=image,
+            is_windows=is_windows,
             webview_links=resource.webview_links,
             init_scripts=init_scripts,
             post_launch_scripts=post_launch_scripts
         )
+
+
+def _is_windows(image: Union[str, ResourceImageConfig]) -> bool:
+    return isinstance(image, str) and image.startswith('windows')
 
 
 def _parse_image(image_id: str, image_user: str, ec2_region: str) -> Union[str, ResourceImageConfig]:
