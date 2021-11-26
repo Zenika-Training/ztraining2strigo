@@ -11,6 +11,10 @@ from ..models.presentations import Presentation
 from .presentations import PresentationConfig
 from .resources import ResourceConfig
 
+_CONFIG_BASE = {
+  "$schema": "https://raw.githubusercontent.com/Zenika-Training/ztraining2strigo/main/strigo.schema.json"
+}
+
 
 @dataclass
 class ClassConfig:
@@ -22,7 +26,7 @@ class ClassConfig:
 
     def write(self, config_path: Path) -> None:
         with config_path.open('w') as f:
-            json.dump(asdict(self), f, indent=2)
+            json.dump({**_CONFIG_BASE, **asdict(self)}, f, indent=2)
 
     @property
     def strigo_description(self) -> str:
