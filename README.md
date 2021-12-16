@@ -1,6 +1,6 @@
 # Ztraining2strigo
 
-Create Strigo classe for Zenika training.
+Create Strigo class for Zenika training.
 
 ## Install
 
