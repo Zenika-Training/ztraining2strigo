@@ -27,6 +27,7 @@ class ClassConfig:
     def write(self, config_path: Path) -> None:
         with config_path.open('w') as f:
             json.dump({**_CONFIG_BASE, **asdict(self)}, f, indent=2)
+            f.write('\n')
 
     @property
     def strigo_description(self) -> str:
