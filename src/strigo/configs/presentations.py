@@ -36,7 +36,7 @@ class PresentationConfig:
 def search_file(filename: str) -> str:
     paths = list(Path('.').glob(f"**/{filename}"))
     if len(paths) == 0:
-        path = Path('PDF') / filename
+        path = Path('pdf') / filename
     else:
         path = paths[0]
     return path.as_posix()
