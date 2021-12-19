@@ -17,7 +17,7 @@ from strigo.client import Client
 from strigo.configs import bootstrap_config_file
 from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
-from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_DEFAULT_REGION, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
+from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
 from strigo.models.resources import Resource, WebviewLink, normalize_script
 
@@ -133,11 +133,7 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
         else:
             image = resource.image
             if isinstance(image, str):
-                image = ResourceImageConfig(
-                    STRIGO_IMAGES[image]['amis'][STRIGO_DEFAULT_REGION],
-                    STRIGO_IMAGES[image]['user'],
-                    STRIGO_DEFAULT_REGION
-                )
+                image = ResourceImageConfig.from_image_name(image)
 
             if resource.init_scripts:
                 init_script = normalize_script('\n'.join(_get_scripts_content(resource.init_scripts)))
@@ -344,5 +340,6 @@ def main() -> None:
     try:
         args.func(client, args)
     except Exception as e:
-        print(e, file=sys.stderr)
+        import traceback
+        traceback.print_exc(limit=0)
         exit(1)

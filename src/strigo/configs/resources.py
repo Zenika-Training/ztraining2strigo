@@ -93,6 +93,18 @@ class ResourceImageConfig:
     def from_dict(d: Dict[str, Any]) -> ResourceImageConfig:
         return ResourceImageConfig(**d)
 
+    @staticmethod
+    def from_image_name(image_name: str) -> ResourceImageConfig:
+        if image_name not in STRIGO_IMAGES:
+            raise ValueError("\n".join([
+                f"Unknown image name: {image_name}",
+                f"Available image names are: {', '.join(STRIGO_IMAGES.keys())}",
+                f"Or use a custom image with '{{image_id: {image_name}, image_user: <image_user>, ec2_region: <ec2_region>}}'"
+            ]))
+        image_id = STRIGO_IMAGES[image_name]['amis'][STRIGO_DEFAULT_REGION]
+        image_user = STRIGO_IMAGES[image_name]['user']
+        return ResourceImageConfig(image_id, image_user, STRIGO_DEFAULT_REGION)
+
 
 @dataclass
 class ResourceConfig:
