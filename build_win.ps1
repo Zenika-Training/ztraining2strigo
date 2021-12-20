@@ -8,7 +8,6 @@ $appVersion = python -c "from ztraining2strigo import VERSION; print(VERSION, en
 python -m nuitka `
     --onefile --windows-onefile-tempdir `
     --assume-yes-for-downloads `
-    --windows-dependency-tool=pefile `
     --windows-company-name=zenika --windows-product-name=ztraining2strigo `
     --windows-file-version=$appVersion --windows-product-version=$appVersion `
     --output-dir=../build `

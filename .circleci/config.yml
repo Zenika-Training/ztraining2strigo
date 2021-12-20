@@ -1,8 +1,8 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@1.6.0
-  win: circleci/windows@2.2.0
+  docker: circleci/docker@2.0.1
+  win: circleci/windows@2.4.1
 
 jobs:
   build-wheel:
@@ -21,6 +21,11 @@ jobs:
       name: win/default
     steps:
       - checkout
+      - run:
+          name: Install python 3.9
+          command: |
+            $LatestPython39=(choco search python --exact --all-versions | Select-String -Pattern '(3\.9\.[\d]+)')[0].Matches.Value
+            choco install --force python --version=$LatestPython39
       - run:
           name: Build exe
           command: .\build_win.ps1
