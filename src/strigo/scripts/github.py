@@ -1,7 +1,7 @@
 # coding: utf8
 
 import http.client
-from functools import cache
+from functools import lru_cache
 
 from ..models.errors import Error
 
@@ -9,7 +9,7 @@ _CONNECTION = http.client.HTTPSConnection('raw.githubusercontent.com')
 _REPOSITORY = 'Zenika/strigo-init-script-libs'
 
 
-@cache
+@lru_cache(maxsize=None)
 def retrieve_script(script: str, version: str, folder: str) -> str:
     _CONNECTION.connect()
     url = f"/{_REPOSITORY}/{version}/{folder}/{script}"
