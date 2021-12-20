@@ -145,17 +145,31 @@
             "default": false
           },
           "init_scripts": {
-            "description": "The list of path to init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
+            "description": "The list of init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
             "type": "array",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/script"
+                }
+              ]
             }
           },
           "post_launch_scripts": {
-            "description": "The list of path to post launch batch scripts (Windows only) to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
+            "description": "The list of post launch batch scripts (Windows only) to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
             "type": "array",
             "items": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/script"
+                }
+              ]
             }
           },
           "webview_links": {
@@ -196,5 +210,30 @@
     "name",
     "presentations",
     "resources"
-  ]
+  ],
+
+  "$defs": {
+    "script": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "description": "The filename of the script",
+          "type": "string"
+        },
+        "version": {
+          "description": "The git version of the script to get",
+          "type": "string",
+          "default": "main"
+        },
+        "env": {
+          "description": "The mapping of environment variables for the script",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "script"
+      ]
+    }
+  }
 }

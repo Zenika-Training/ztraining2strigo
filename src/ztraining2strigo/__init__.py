@@ -7,7 +7,7 @@ from difflib import unified_diff
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, Iterator, List
+from typing import Callable, List
 
 from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
@@ -19,7 +19,7 @@ from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
 from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
-from strigo.models.resources import Resource, WebviewLink, normalize_script
+from strigo.models.resources import Resource, WebviewLink
 
 from .notes_parser import parse_notes
 
@@ -56,12 +56,6 @@ def _confirm(prompt: str) -> bool:
             return False
         else:
             print('Please answer by y[es] or n[o]', file=sys.stderr)
-
-
-def _get_scripts_content(scripts: List[str]) -> Iterator[str]:
-    for script in scripts:
-        with Path(script).open() as f:
-            yield f.read()
 
 
 def _show_diff(a: str, b: str, prefix: str = '\t') -> None:
@@ -135,17 +129,8 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
             if isinstance(image, str):
                 image = ResourceImageConfig.from_image_name(image)
 
-            if resource.init_scripts:
-                init_script = normalize_script('\n'.join(_get_scripts_content(resource.init_scripts)))
-                if resource.is_windows:
-                    init_script = f"<powershell>\n\n{init_script}\n</powershell>\n"
-            else:
-                init_script = UNDEFINED
-
-            if resource.post_launch_scripts:
-                post_launch_script = normalize_script('\n'.join(_get_scripts_content(resource.post_launch_scripts)))
-            else:
-                post_launch_script = UNDEFINED
+            init_script = resource.unique_init_script() or UNDEFINED
+            post_launch_script = resource.unique_post_launch_script() or UNDEFINED
 
             if existing_resource is None:
                 print(f"{messages_prefix}Creating machine {index} named {resource.name}")
@@ -341,5 +326,5 @@ def main() -> None:
         args.func(client, args)
     except Exception as e:
         import traceback
-        traceback.print_exc(limit=0)
+        traceback.print_exc(limit=None if os.environ.get('DEBUG', False) else 0)
         exit(1)

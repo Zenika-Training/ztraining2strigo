@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Union
 
 from ..models.resources import Resource, WebviewLink
+from ..scripts import unique_script
+from ..scripts.configs import Script, ScriptType
 from . import get_scripts_folder
 
 STRIGO_DEFAULT_INSTANCE_TYPES = ['t2.medium', 't2.large', 't2.xlarge']
@@ -112,9 +114,18 @@ class ResourceConfig:
     instance_type: str
     image: Union[str, ResourceImageConfig]
     is_windows: bool = False
-    init_scripts: List[str] = field(default_factory=list)
+    init_scripts: List[Union[str, Script]] = field(default_factory=list)
     post_launch_scripts: List[str] = field(default_factory=list)
     webview_links: List[WebviewLink] = field(default_factory=list)
+
+    def unique_init_script(self):
+        init_script = unique_script(self.init_scripts)
+        if self.is_windows:
+            init_script = f"<powershell>\n\n{init_script}\n</powershell>\n"
+        return init_script
+
+    def unique_post_launch_script(self):
+        return unique_script(self.post_launch_scripts)
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> ResourceConfig:
@@ -122,6 +133,19 @@ class ResourceConfig:
             d['image'] = ResourceImageConfig.from_dict(d['image'])
         if 'is_windows' not in d:
             d['is_windows'] = _is_windows(d['image'])
+        init_scripts = []
+        for init_script in d['init_scripts']:
+            if not isinstance(init_script, str):
+                script_type = ScriptType.WINDOWS_INIT if d['is_windows'] else ScriptType.INIT
+                init_script = Script.from_dict(script_type, init_script)
+            init_scripts.append(init_script)
+        d['init_scripts'] = init_scripts
+        post_launch_scripts = []
+        for post_launch_script in d['post_launch_scripts']:
+            if not isinstance(post_launch_script, str):
+                post_launch_script = Script.from_dict(ScriptType.POST_LAUNCH, post_launch_script)
+            post_launch_scripts.append(post_launch_script)
+        d['post_launch_scripts'] = post_launch_scripts
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         return ResourceConfig(**d)
 
