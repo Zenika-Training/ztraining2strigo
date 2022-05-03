@@ -8,7 +8,7 @@ from typing import List
 from strigo.api.presentations import Note
 
 SLIDE_SEP_RE = re.compile(r'\r?\n\r?\n\r?\n\r?\n')
-NOTES_SEP_RE = re.compile(r'\r?\nNotes :\r?\n')
+NOTES_SEP_RE = re.compile(r'\r?\nNotes : *\r?\n')
 
 
 def parse_notes(notes_source: Path) -> List[Note]:
