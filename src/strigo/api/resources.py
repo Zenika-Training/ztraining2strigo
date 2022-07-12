@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import List, Union
 
 from ..client import Client
-from ..models.resources import Resource, WebviewLink
+from ..models.resources import Resource, ViewInterface, WebviewLink
 from . import UNDEFINED, UNDEFINED_TYPE
 
 
@@ -17,14 +17,16 @@ def get(client: Client, class_id: str, resource_id: str) -> Resource:
 
 
 def create(client: Client, class_id: str, name: str, image_id: str, image_user: str,
-           webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED, post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED, ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
+           view_interface: Union[ViewInterface, UNDEFINED_TYPE], webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED,
+           post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED, userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED,
+           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
     data = {
         'name': name,
         'image_id': image_id,
         'image_user': image_user
     }
+    if view_interface not in {None, UNDEFINED}:
+        data['view_interface'] = view_interface.value
     if webview_links is not UNDEFINED:
         data['webview_links'] = [w.to_dict() for w in webview_links]
     if post_launch_script is not UNDEFINED:
@@ -39,9 +41,9 @@ def create(client: Client, class_id: str, name: str, image_id: str, image_user: 
 
 
 def update(client: Client, class_id: str, resource_id: str, name: str, image_id: str, image_user: str,
-           webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED, post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED, ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
+           view_interface: Union[ViewInterface, UNDEFINED_TYPE], webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED,
+           post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED, userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED,
+           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
     data = {}
     if name is not UNDEFINED:
         data['name'] = name
@@ -49,6 +51,8 @@ def update(client: Client, class_id: str, resource_id: str, name: str, image_id:
         data['image_id'] = image_id
     if image_user is not UNDEFINED:
         data['image_user'] = image_user
+    if view_interface not in {None, UNDEFINED}:
+        data['view_interface'] = view_interface.value
     if webview_links is not UNDEFINED:
         data['webview_links'] = [w.to_dict() for w in webview_links]
     if post_launch_script is not UNDEFINED:

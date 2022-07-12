@@ -19,19 +19,19 @@ class Owner:
         return asdict(self)
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> Note:
-        return Note(**d)
+    def from_dict(d: Dict[str, Any]) -> Owner:
+        return Owner(**d)
 
 
 @dataclass
 class Class:
     id: str
     name: str
-    owner: Owner
     resources: List[Resource]
     presentation_notes: List[Note]
     created_at: datetime
     updated_at: datetime
+    owner: Owner = None
     description: str = None
     presentation_filename: str = None
 
@@ -47,6 +47,7 @@ class Class:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Class:
+        d['owner'] = Owner.from_dict(d['owner']) if 'owner' in d else None
         d['created_at'] = parse_date(d['created_at'])
         d['updated_at'] = parse_date(d['updated_at'])
         d['resources'] = [Resource.from_dict(e) for e in d['resources']]

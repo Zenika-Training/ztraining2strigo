@@ -19,7 +19,7 @@ from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
 from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
-from strigo.models.resources import Resource, WebviewLink
+from strigo.models.resources import Resource, ViewInterface, WebviewLink
 
 from .notes_parser import parse_notes
 
@@ -137,7 +137,8 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                 if not dry_run:
                     resources_api.create(
                         client, existing_class.id, resource.name, image.image_id, image.image_user,
-                        resource.webview_links, post_launch_script, init_script,
+                        resource.view_interface, resource.webview_links,
+                        post_launch_script, init_script,
                         image.ec2_region, resource.instance_type
                     )
             else:
@@ -167,6 +168,9 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                     if diff:
                         _show_diff(existing_resource.post_launch_script, post_launch_script)
                     needs_update = True
+                if resource.view_interface is not None and resource.view_interface != existing_resource.view_interface:
+                    print(f"Will update machine {index} view interface from {existing_resource.view_interface.value} to {resource.view_interface.value}")
+                    needs_update = True
                 if resource.webview_links != existing_resource.webview_links:
                     print(f"Will update machine {index} webview links")
                     needs_update = True
@@ -176,7 +180,8 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                         resources_api.update(
                             client, existing_class.id, existing_resource.id,
                             resource.name, image.image_id, image.image_user,
-                            resource.webview_links, post_launch_script, init_script,
+                            resource.view_interface, resource.webview_links,
+                            post_launch_script, init_script,
                             image.ec2_region, resource.instance_type
                         )
 
@@ -221,11 +226,16 @@ def create(client: Client, args: argparse.Namespace) -> None:
         resource_name = _prompt('Please enter machine name', is_valid=is_resource_name_valid)
         instance_type = _prompt('Please enter machine type', choices=STRIGO_DEFAULT_INSTANCE_TYPES)
         image = _prompt('Please enter machine image', choices=list(STRIGO_IMAGES.keys()) + ['custom'])
+        is_windows = False
+        view_interface = None
         if image == 'custom':
             image_id = _prompt('Please enter AMI ("ami-...")', is_valid=lambda id: id.startswith('ami-'))
             image_user = _prompt('Please enter image user')
             image_region = _prompt('Please enter image region', is_valid=lambda r: r in AWS_REGIONS)
             image = ResourceImageConfig(image_id, image_user, image_region)
+            view_interface = _prompt('Please enter machine view interface', choices=[e.value for e in ViewInterface])
+        else:
+            is_windows = image.startswith('windows')
 
         init_scripts: List[str] = []
         if _confirm('Do you want to add init scripts?'):
@@ -257,7 +267,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
                 if not _confirm('Do you want to add another webview link?'):
                     break
 
-        resource = ResourceConfig(resource_name, instance_type, image, init_scripts, post_launch_scripts, webview_links)
+        resource = ResourceConfig(resource_name, instance_type, image, is_windows, init_scripts, post_launch_scripts, view_interface, webview_links)
         resources.append(resource)
         if not _confirm('Do you want to add another machine?'):
             break

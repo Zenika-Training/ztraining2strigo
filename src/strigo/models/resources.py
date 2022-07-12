@@ -2,9 +2,15 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import Any, Dict, List
 
 from ..scripts import normalize_script
+
+
+class ViewInterface(str, Enum):
+    TERMINAL = 'terminal'
+    DESKTOP = 'desktop'
 
 
 @dataclass
@@ -30,6 +36,7 @@ class Resource:
     image_id: str
     image_user: str
     is_custom_image: bool = False
+    view_interface: ViewInterface = None
     webview_links: List[WebviewLink] = field(default_factory=list)
     post_launch_script: str = None
     userdata: str = None
@@ -41,6 +48,12 @@ class Resource:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Resource:
+        d['view_interface'] = ViewInterface(d['view_interface']) if 'view_interface' in d else None
+        if d['is_custom_image']:
+            if 'image_id' not in d:  # Web based lab (not yet used in ztraining2strigo but has to be handled)
+                d['image_id'] = ''
+            if 'image_user' not in d:
+                d['image_user'] = ''
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         d['post_launch_script'] = normalize_script(d.get('post_launch_script', None))
         d['userdata'] = normalize_script(d.get('userdata', None))

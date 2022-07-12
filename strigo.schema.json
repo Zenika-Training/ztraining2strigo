@@ -169,6 +169,14 @@
               ]
             }
           },
+          "view_interface": {
+            "description": "The default interface of the machine",
+            "type": "string",
+            "enum": [
+              "terminal",
+              "desktop"
+            ]
+          },
           "webview_links": {
             "description": "The list of web interfaces of the machine",
             "type": "array",

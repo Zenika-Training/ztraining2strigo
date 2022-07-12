@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Union
 
-from ..models.resources import Resource, WebviewLink
+from ..models.resources import Resource, ViewInterface, WebviewLink
 from ..scripts import unique_script
 from ..scripts.configs import Script, ScriptType
 from . import get_scripts_folder
@@ -116,6 +116,7 @@ class ResourceConfig:
     is_windows: bool = False
     init_scripts: List[Union[str, Script]] = field(default_factory=list)
     post_launch_scripts: List[str] = field(default_factory=list)
+    view_interface: ViewInterface = None
     webview_links: List[WebviewLink] = field(default_factory=list)
 
     def unique_init_script(self):
@@ -146,6 +147,7 @@ class ResourceConfig:
                 post_launch_script = Script.from_dict(ScriptType.POST_LAUNCH, post_launch_script)
             post_launch_scripts.append(post_launch_script)
         d['post_launch_scripts'] = post_launch_scripts
+        d['view_interface'] = ViewInterface(d['view_interface']) if 'view_interface' in d and d['view_interface'] else None
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         return ResourceConfig(**d)
 
@@ -175,6 +177,7 @@ class ResourceConfig:
             instance_type=resource.instance_type,
             image=image,
             is_windows=is_windows,
+            view_interface=resource.view_interface,
             webview_links=resource.webview_links,
             init_scripts=init_scripts,
             post_launch_scripts=post_launch_scripts

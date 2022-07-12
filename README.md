@@ -150,6 +150,7 @@ There is a [JSON Schema](https://json-schema.org/) available at <https://raw.git
       - `version`: the git version of the script to get (defaults to `main`)
       - `env`: the mapping of environment variables for the script
   - `post_launch_scripts`: the list of post launch batch scripts (Windows only) to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo. Same format as `init_scripts`
+  - `view_interface`: the default interface of the machine (one of `terminal` or `desktop`, defaults to none)
   - `webview_links`: the list of web interfaces of the machine:
     - `name`: the name of the interface
     - `url`: the URL of the interface (something of the form `http://instance.autolab.strigo.io:<port>`)
