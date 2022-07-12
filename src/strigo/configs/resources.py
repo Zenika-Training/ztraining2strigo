@@ -69,6 +69,12 @@ STRIGO_IMAGES = {
       STRIGO_DEFAULT_REGION: 'ami-337be65c'
     }
   },
+  'centos-7.9': {
+    'user': 'centos',
+    'amis': {
+      STRIGO_DEFAULT_REGION: 'ami-08b6d44b4f6f7b279'
+    }
+  },
   'docker-17.09.0-ce': {
     'user': 'ubuntu',
     'amis': {
@@ -79,6 +85,12 @@ STRIGO_IMAGES = {
     'user': 'Administrator',
     'amis': {
       STRIGO_DEFAULT_REGION: 'ami-0ea21e760f354e854'
+    }
+  },
+  'windows-server-2019': {
+    'user': 'Administrator',
+    'amis': {
+      STRIGO_DEFAULT_REGION: 'ami-055a56647b41498c3'
     }
   }
 }

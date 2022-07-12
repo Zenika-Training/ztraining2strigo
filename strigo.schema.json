@@ -82,8 +82,10 @@
                   "amazon-linux-2017.09.1",
                   "amazon-linux-v2-2017.09.1",
                   "centos-7",
+                  "centos-7.9",
                   "docker-17.09.0-ce",
-                  "windows-server-2016"
+                  "windows-server-2016",
+                  "windows-server-2019"
                 ]
               },
               {
