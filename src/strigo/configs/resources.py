@@ -9,7 +9,7 @@ from ..scripts import unique_script
 from ..scripts.configs import Script, ScriptType
 from . import get_scripts_folder
 
-STRIGO_DEFAULT_INSTANCE_TYPES = ['t2.medium', 't2.large', 't2.xlarge']
+STRIGO_DEFAULT_INSTANCE_TYPES = ['t3.medium', 't3.large', 't3.xlarge']
 AWS_REGIONS = [
     'us-east-2', 'us-east-1', 'us-west-1', 'us-west-2',
     'af-south-1', 'ap-east-1', 'ap-south-1',

@@ -138,7 +138,7 @@ There is a [JSON Schema](https://json-schema.org/) available at <https://raw.git
   - `notes_source`: the path to the listing of slides for notes extraction (should be `Slides/slides.json`)
 - `resources`: the list of lab machines
   - `name`: the display name of the machine
-  - `instance_type`: the size of the machine (one of `t2.medium`, `t2.large` or `t2.xlarge`, see [AWS EC2 T2 Instances](https://aws.amazon.com/ec2/instance-types/t2/#Product_Details))
+  - `instance_type`: the size of the machine (one of `t3.medium`, `t3.large` or `t3.xlarge`, see [AWS EC2 T3 Instances](https://aws.amazon.com/ec2/instance-types/t3/#Product_Details))
   - `image`: the machine image, can be the normalized name of the preconfigured Strigo images (lower case, space replaced by simple hyphen `-`), or a custom image:
     - `image_id`: the AMI ID
     - `image_user`: the default user of the AMI

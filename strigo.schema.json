@@ -65,10 +65,7 @@
             "enum": [
               "t3.medium",
               "t3.large",
-              "t3.xlarge",
-              "t2.medium",
-              "t2.large",
-              "t2.xlarge"
+              "t3.xlarge"
             ]
           },
           "image": {
