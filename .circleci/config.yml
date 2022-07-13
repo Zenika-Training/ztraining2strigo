@@ -63,7 +63,7 @@ workflows:
           use-remote-docker: yes
           remote-docker-dlc: yes
           deploy: yes
-          update-description: yes
+          update-description: no
           docker-username: DOCKERHUB_USERNAME
           docker-password: DOCKERHUB_PASS
           filters:
