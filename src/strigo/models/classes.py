@@ -47,7 +47,7 @@ class Class:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Class:
-        d['owner'] = Owner.from_dict(d['owner']) if 'owner' in d else None
+        d['owner'] = Owner.from_dict(d['owner']) if 'owner' in d and d['owner'] else None
         d['created_at'] = parse_date(d['created_at'])
         d['updated_at'] = parse_date(d['updated_at'])
         d['resources'] = [Resource.from_dict(e) for e in d['resources']]
