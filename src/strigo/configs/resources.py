@@ -132,13 +132,10 @@ class ResourceConfig:
     webview_links: List[WebviewLink] = field(default_factory=list)
 
     def unique_init_script(self):
-        init_script = unique_script(self.init_scripts)
-        if self.is_windows:
-            init_script = f"<powershell>\n\n{init_script}\n</powershell>\n"
-        return init_script
+        return unique_script(self.init_scripts, self.is_windows)
 
     def unique_post_launch_script(self):
-        return unique_script(self.post_launch_scripts)
+        return unique_script(self.post_launch_scripts, self.is_windows, True)
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> ResourceConfig:
