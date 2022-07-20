@@ -1,7 +1,6 @@
 # coding: utf8
 from __future__ import annotations
 
-import http.client
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict
