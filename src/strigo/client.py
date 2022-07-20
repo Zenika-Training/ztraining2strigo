@@ -44,7 +44,7 @@ class Client:
 
         return self._parse_result(response, raw_data, cls)
 
-    def post(self, path, data: Dict[str: Any], cls: Type[_T]) -> _T:
+    def post(self, path, data: Dict[str, Any], cls: Type[_T]) -> _T:
         self._connection.connect()
         body = json.dumps(data)
         self._connection.request('POST', f"{self._path}{path}", body=body, headers=self._headers())
@@ -55,7 +55,7 @@ class Client:
 
         return self._parse_result(response, raw_data, cls)
 
-    def patch(self, path, data: Dict[str: Any], cls: Type[_T]) -> _T:
+    def patch(self, path, data: Dict[str, Any], cls: Type[_T]) -> _T:
         self._connection.connect()
         body = json.dumps(data)
         self._connection.request('PATCH', f"{self._path}{path}", body=body, headers=self._headers())
@@ -66,7 +66,7 @@ class Client:
 
         return self._parse_result(response, raw_data, cls)
 
-    def upload(self, path, data: Dict[str: Path], cls: Type[_T]) -> _T:
+    def upload(self, path, data: Dict[str, Path], cls: Type[_T]) -> _T:
         self._connection.connect()
         headers = self._headers()
         boundary = uuid.uuid4().hex

@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 class Error(Exception):
     type: str
     message: str
-    errors: List[Dict[str: Any]] = None
+    errors: List[Dict[str, Any]] = None
 
     def __post_init__(self):
         super().__init__(repr(self))
