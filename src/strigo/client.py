@@ -1,6 +1,5 @@
 # coding: utf8
 from __future__ import annotations
-from email import message
 
 import http.client
 import json

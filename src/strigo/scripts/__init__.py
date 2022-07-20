@@ -1,7 +1,7 @@
 # coding: utf8
 
-from typing import List, Union, Iterator
 from pathlib import Path
+from typing import Iterator, List, Union
 
 from .configs import Script
 
