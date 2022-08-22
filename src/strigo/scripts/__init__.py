@@ -36,4 +36,6 @@ def unique_script(scripts: List[Union[str, Script]], is_windows: bool, is_post_l
     full_script = normalize_script('\n'.join(get_scripts_content(scripts, is_windows)))
     if is_windows and full_script and not is_post_launch:
         full_script = f"<powershell>\n\n{full_script}\n</powershell>\n"
+    elif not is_windows and full_script:
+        full_script = f"#!/bin/bash\n\n{full_script}"
     return full_script
