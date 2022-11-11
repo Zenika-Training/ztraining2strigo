@@ -1,14 +1,12 @@
 # coding: utf8
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict
 
 from ..github import retrieve_script
-
-DOUBLE_QUOTE = chr(34)
-ESCAPED_DOUBLE_QUOTE = chr(92) + chr(34)
 
 
 class ScriptType(Enum):
@@ -26,6 +24,7 @@ class Script():
 
     @staticmethod
     def from_dict(script_type: ScriptType, d: Dict[str, Any]) -> Script:
+        d['env'] = {k: (v if isinstance(v, str) else json.dumps(v, separators=(',', ':'))) for k, v in d.get('env', {}).items()}
         return Script(script_type=script_type, **d)
 
     def __post_init__(self):
@@ -33,6 +32,6 @@ class Script():
 
     @property
     def content(self) -> str:
-        script = '\n'.join(f'{key}="{value.replace(DOUBLE_QUOTE, ESCAPED_DOUBLE_QUOTE)}"' for key, value in self.env.items())
+        script = '\n'.join(f'{key}={json.dumps(value)}' for key, value in self.env.items())
         script += '\n' + self.script_content
         return script
