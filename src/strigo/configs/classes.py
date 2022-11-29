@@ -44,6 +44,8 @@ class ClassConfig:
     def from_dict(d: Dict[str, Any]) -> ClassConfig:
         if isinstance(d['description'], str):
             d['description'] = d['description'].split('\n')
+        if len(d['presentations']) != 1:
+            raise Exception('Presentations list must have exactly 1 element')
         d['presentations'] = [PresentationConfig.from_dict(e) for e in d['presentations']]
         d['resources'] = [ResourceConfig.from_dict(e) for e in d['resources']]
         return ClassConfig(**d)
