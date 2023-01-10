@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from . import build_object, format_date, parse_date
 from .presentations import Note
@@ -31,9 +31,9 @@ class Class:
     presentation_notes: List[Note]
     created_at: datetime
     updated_at: datetime
-    owner: Owner = None
-    description: str = None
-    presentation_filename: str = None
+    owner: Optional[Owner] = None
+    description: Optional[str] = None
+    presentation_filename: Optional[str] = None
 
     @property
     def str_description(self) -> str:

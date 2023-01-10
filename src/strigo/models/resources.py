@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..scripts import normalize_script
 from . import build_object
@@ -37,12 +37,12 @@ class Resource:
     image_id: str
     image_user: str
     is_custom_image: bool = False
-    view_interface: ViewInterface = None
+    view_interface: Optional[ViewInterface] = None
     webview_links: List[WebviewLink] = field(default_factory=list)
-    post_launch_script: str = None
-    userdata: str = None
-    ec2_region: str = None
-    instance_type: str = None
+    post_launch_script: Optional[str] = None
+    userdata: Optional[str] = None
+    ec2_region: Optional[str] = None
+    instance_type: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

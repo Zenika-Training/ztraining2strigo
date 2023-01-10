@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..models.classes import Class
 from ..models.presentations import Presentation
@@ -19,7 +19,7 @@ _CONFIG_BASE = {
 @dataclass
 class ClassConfig:
     name: str
-    id: str = None
+    id: Optional[str] = None
     description: List[str] = field(default_factory=list)
     presentations: List[PresentationConfig] = field(default_factory=list)
     resources: List[ResourceConfig] = field(default_factory=list)

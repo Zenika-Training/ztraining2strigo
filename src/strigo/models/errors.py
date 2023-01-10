@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List
 
 from . import build_object
@@ -11,7 +11,7 @@ from . import build_object
 class Error(Exception):
     type: str
     message: str
-    errors: List[Dict[str, Any]] = None
+    errors: List[Dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self):
         super().__init__(repr(self))
