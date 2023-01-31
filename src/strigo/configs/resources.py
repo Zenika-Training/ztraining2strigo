@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from ..models.resources import Resource, ViewInterface, WebviewLink
 from ..scripts import unique_script
@@ -121,7 +121,7 @@ AMIS_TO_OS = {v.strigo_default_ami: k for k, v in STRIGO_IMAGES.items()}
 class ResourceImageConfig:
     image_id: str
     image_user: str
-    ec2_region: str = None
+    ec2_region: Optional[str] = None
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> ResourceImageConfig:
@@ -150,7 +150,7 @@ class ResourceConfig:
     is_windows: bool = False
     init_scripts: List[Union[str, Script]] = field(default_factory=list)
     post_launch_scripts: List[str] = field(default_factory=list)
-    view_interface: ViewInterface = None
+    view_interface: Optional[ViewInterface] = None
     webview_links: List[WebviewLink] = field(default_factory=list)
 
     def unique_init_script(self):
@@ -191,7 +191,7 @@ class ResourceConfig:
         is_windows = _is_windows(image)
         scripts_folder = get_scripts_folder()
         normalized_resource_name = resource.name.replace('\\s', '_')
-        init_scripts = []
+        init_scripts: List[Union[str, Script]] = []
         if resource.userdata:
             script_path = scripts_folder / f"init_{normalized_resource_name}.{'ps1' if is_windows else 'sh'}"
             with script_path.open('wt') as f:

@@ -1,11 +1,11 @@
 # coding: utf8
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from . import format_date, parse_date
+from . import build_object, format_date, parse_date
 from .presentations import Note
 from .resources import Resource
 
@@ -20,7 +20,7 @@ class Owner:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Owner:
-        return Owner(**d)
+        return build_object(Owner, d)
 
 
 @dataclass
@@ -31,9 +31,10 @@ class Class:
     presentation_notes: List[Note]
     created_at: datetime
     updated_at: datetime
-    owner: Owner = None
-    description: str = None
-    presentation_filename: str = None
+    owner: Optional[Owner] = None
+    description: Optional[str] = None
+    presentation_filename: Optional[str] = None
+    labels: List[str] = field(default_factory=list)
 
     @property
     def str_description(self) -> str:
@@ -52,4 +53,4 @@ class Class:
         d['updated_at'] = parse_date(d['updated_at'])
         d['resources'] = [Resource.from_dict(e) for e in d['resources']]
         d['presentation_notes'] = [Note.from_dict(e) for e in d['presentation_notes']]
-        return Class(**d)
+        return build_object(Class, d)

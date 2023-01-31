@@ -24,6 +24,13 @@
         "type": "string"
       }
     },
+    "labels": {
+      "description": "The list of labels of the class (can be empty list `[]`)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "presentations": {
       "description": "The list of presentation materials (1 and only 1 element)",
       "type": "array",
@@ -151,10 +158,17 @@
           },
           "view_interface": {
             "description": "The default interface of the machine",
-            "type": "string",
-            "enum": [
-              "terminal",
-              "desktop"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "terminal",
+                  "desktop"
+                ]
+              }
             ]
           },
           "webview_links": {

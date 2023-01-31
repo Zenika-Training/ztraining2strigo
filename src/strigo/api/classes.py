@@ -20,19 +20,23 @@ def get(client: Client, class_id: str) -> Class:
     return client.get(f"/classes/{class_id}", Class)
 
 
-def create(client: Client, name: str, description: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Class:
+def create(client: Client, name: str, description: Union[str, UNDEFINED_TYPE] = UNDEFINED, labels: Union[List[str], UNDEFINED_TYPE] = UNDEFINED) -> Class:
     data = {'name': name}
     if description is not UNDEFINED:
         data['description'] = description
+    if labels is not UNDEFINED:
+        data['labels'] = labels
     return client.post('/classes', data, Class)
 
 
-def update(client: Client, class_id: str, name: Union[str, UNDEFINED_TYPE] = UNDEFINED, description: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Class:
+def update(client: Client, class_id: str, name: Union[str, UNDEFINED_TYPE] = UNDEFINED, description: Union[str, UNDEFINED_TYPE] = UNDEFINED, labels: Union[List[str], UNDEFINED_TYPE] = UNDEFINED) -> Class:
     data = {}
     if name is not UNDEFINED:
         data['name'] = name
     if description is not UNDEFINED:
         data['description'] = description
+    if labels is not UNDEFINED:
+        data['labels'] = labels
     return client.patch(f"/classes/{class_id}", data, Class)
 
 
