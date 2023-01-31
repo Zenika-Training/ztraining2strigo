@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List
 
+from . import build_object
+
 
 @dataclass
 class Error(Exception):
@@ -19,7 +21,7 @@ class Error(Exception):
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Error:
-        return Error(**d)
+        return build_object(Error, d)
 
 
 @dataclass
@@ -27,4 +29,4 @@ class RequestValidationError(Error):
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> RequestValidationError:
-        return RequestValidationError(**d)
+        return build_object(RequestValidationError, d)

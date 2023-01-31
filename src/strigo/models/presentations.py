@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any, Dict, List
 
-from . import format_date, parse_date
+from . import build_object, format_date, parse_date
 
 
 @dataclass
@@ -18,7 +18,7 @@ class Note:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Note:
-        return Note(**d)
+        return build_object(Note, d)
 
 
 @dataclass
@@ -39,4 +39,4 @@ class Presentation:
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Presentation:
         d['upload_date'] = parse_date(d['upload_date'])
-        return Presentation(**d)
+        return build_object(Presentation, d)

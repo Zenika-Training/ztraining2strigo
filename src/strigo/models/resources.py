@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Any, Dict, List
 
 from ..scripts import normalize_script
+from . import build_object
 
 
 class ViewInterface(str, Enum):
@@ -25,7 +26,7 @@ class WebviewLink:
     def from_dict(d: Dict[str, Any]) -> WebviewLink:
         if '_id' in d:
             del d['_id']
-        return WebviewLink(**d)
+        return build_object(WebviewLink, d)
 
 
 @dataclass
@@ -57,4 +58,4 @@ class Resource:
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         d['post_launch_script'] = normalize_script(d.get('post_launch_script', None))
         d['userdata'] = normalize_script(d.get('userdata', None))
-        return Resource(**d)
+        return build_object(Resource, d)
