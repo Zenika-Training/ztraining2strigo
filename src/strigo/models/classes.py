@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -34,6 +34,7 @@ class Class:
     owner: Optional[Owner] = None
     description: Optional[str] = None
     presentation_filename: Optional[str] = None
+    labels: List[str] = field(default_factory=list)
 
     @property
     def str_description(self) -> str:

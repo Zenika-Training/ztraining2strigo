@@ -21,6 +21,7 @@ class ClassConfig:
     name: str
     id: Optional[str] = None
     description: List[str] = field(default_factory=list)
+    labels: List[str] = field(default_factory=list)
     presentations: List[PresentationConfig] = field(default_factory=list)
     resources: List[ResourceConfig] = field(default_factory=list)
 
@@ -56,6 +57,7 @@ class ClassConfig:
             id=cls.id,
             name=cls.name,
             description=cls.str_description.split('\n'),
+            labels=cls.labels,
             presentations=[PresentationConfig.from_strigo(p) for p in presentations],
             resources=[ResourceConfig.from_strigo(r) for r in cls.resources]
         )

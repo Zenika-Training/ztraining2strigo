@@ -133,6 +133,7 @@ There is a [JSON Schema](https://json-schema.org/) available at <https://raw.git
 - `id`: the Strigo ID of the class, shouldn't be changed
 - `name`: the name of the class
 - `description`: the list of lines of description of the class (can be empty list `[]`)
+- `labels`: the list of labels the class (can be empty list `[]`)
 - `presentations`: the list of presentation materials, can only contains 1 element for now (Strigo model)
   - `file`: the path to presentation file (typically `pdf/Zenika-Formation-xxx-Slides.pdf` or `pdf/Zenika-training-material-Slides.pdf`)
   - `notes_source`: the path to the listing of slides for notes extraction (should be `Slides/slides.json`)
