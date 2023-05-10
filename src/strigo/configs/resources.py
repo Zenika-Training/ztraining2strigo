@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from ..models.resources import Resource, ViewInterface, WebviewLink
 from ..scripts import unique_script
-from ..scripts.configs import Script, ScriptType
+from ..scripts.configs import Script
 from . import get_scripts_folder
 
 STRIGO_DEFAULT_INSTANCE_TYPES = ['t3.medium', 't3.large', 't3.xlarge']
@@ -165,8 +165,8 @@ class ResourceConfig:
     instance_type: str
     image: Union[str, ResourceImageConfig]
     is_windows: bool = False
-    init_scripts: List[Union[str, Script]] = field(default_factory=list)
-    post_launch_scripts: List[str] = field(default_factory=list)
+    init_scripts: List[Script] = field(default_factory=list)
+    post_launch_scripts: List[Script] = field(default_factory=list)
     view_interface: Optional[ViewInterface] = None
     webview_links: List[WebviewLink] = field(default_factory=list)
 
@@ -184,16 +184,11 @@ class ResourceConfig:
             d['is_windows'] = _is_windows(d['image'])
         init_scripts = []
         for init_script in d['init_scripts']:
-            if not isinstance(init_script, str):
-                script_type = ScriptType.WINDOWS_INIT if d['is_windows'] else ScriptType.INIT
-                init_script = Script.from_dict(script_type, init_script)
-            init_scripts.append(init_script)
+            init_scripts.append(Script.new_init_script(init_script, d['is_windows']))
         d['init_scripts'] = init_scripts
         post_launch_scripts = []
         for post_launch_script in d['post_launch_scripts']:
-            if not isinstance(post_launch_script, str):
-                post_launch_script = Script.from_dict(ScriptType.POST_LAUNCH, post_launch_script)
-            post_launch_scripts.append(post_launch_script)
+            post_launch_scripts.append(Script.new_post_launch_script(post_launch_script))
         d['post_launch_scripts'] = post_launch_scripts
         d['view_interface'] = ViewInterface(d['view_interface']) if 'view_interface' in d and d['view_interface'] else None
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
@@ -208,18 +203,18 @@ class ResourceConfig:
         is_windows = _is_windows(image)
         scripts_folder = get_scripts_folder()
         normalized_resource_name = resource.name.replace('\\s', '_')
-        init_scripts: List[Union[str, Script]] = []
+        init_scripts: List[Script] = []
         if resource.userdata:
             script_path = scripts_folder / f"init_{normalized_resource_name}.{'ps1' if is_windows else 'sh'}"
             with script_path.open('wt') as f:
                 f.write(resource.userdata.replace('<powershell>', '').replace('</powershell>', '').strip() + '\n')
-            init_scripts.append(script_path.as_posix())
-        post_launch_scripts = []
+            init_scripts.append(Script.new_init_script(script_path.as_posix(), is_windows))
+        post_launch_scripts: List[Script] = []
         if resource.post_launch_script:
             script_path = scripts_folder / f"post_launch_{normalized_resource_name}.ps1"
             with script_path.open('wt') as f:
                 f.write(resource.post_launch_script)
-            post_launch_scripts.append(script_path.as_posix())
+            post_launch_scripts.append(Script.new_post_launch_script(script_path.as_posix()))
         return ResourceConfig(
             name=resource.name,
             instance_type=resource.instance_type,
