@@ -14,7 +14,7 @@ An alternative is to follow the procedure for [other OS](#other-os).
 
 ### Other OS
 
-1. Make sure to have [Python](https://www.python.org/downloads/) >= 3.7 installed.
+1. Make sure to have [Python](https://www.python.org/downloads/) >= 3.11 installed.
 2. Download the `ztraining2strigo-x.y.z-py3-none-any.whl` from latest release.
 3. Install the wheel package:
 
@@ -226,7 +226,7 @@ Example:
 
 ## Build package
 
-Building requirement is a Python environment >= 3.7.
+Building requirement is a Python environment >= 3.11.
 
 ### Python wheel
 
