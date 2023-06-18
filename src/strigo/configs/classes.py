@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -36,8 +37,14 @@ class ClassConfig:
 
     @staticmethod
     def load(config_path: Path) -> ClassConfig:
-        with config_path.open() as f:
-            raw_config = json.load(f)
+        with config_path.open('rb') as f:
+            match config_path.suffix:
+                case '.json':
+                    raw_config = json.load(f)
+                case '.toml':
+                    raw_config = tomllib.load(f)
+                case _:
+                    raise Exception(f"Format unsupported for config file '{config_path.absolute()}'")
         raw_config.pop('$schema', None)
         return ClassConfig.from_dict(raw_config)
 

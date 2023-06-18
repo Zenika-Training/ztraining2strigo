@@ -14,7 +14,7 @@ An alternative is to follow the procedure for [other OS](#other-os).
 
 ### Other OS
 
-1. Make sure to have [Python](https://www.python.org/downloads/) >= 3.7 installed.
+1. Make sure to have [Python](https://www.python.org/downloads/) >= 3.11 installed.
 2. Download the `ztraining2strigo-x.y.z-py3-none-any.whl` from latest release.
 3. Install the wheel package:
 
@@ -145,7 +145,8 @@ There is a [JSON Schema](https://json-schema.org/) available at <https://raw.git
     - `image_user`: the default user of the AMI
     - `ec2_region`: the region of the AMI
   - `init_scripts`: the list of init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo. Can be either:
-    - a path to a local script
+    - a reference to a local script:
+      - `path`: the path of the local script inside the training repository
     - a reference to a script from [strigo-init-script-libs](https://github.com/Zenika/strigo-init-script-libs):
       - `script`: the filename of the script
       - `version`: the git version of the script to get (defaults to `main`)
@@ -180,8 +181,12 @@ Example:
       "instance_type": "t2.medium",
       "image": "ubuntu-16.04.2",
       "init_scripts": [
-        "Installation/strigo/init_all.sh",
-        "Installation/strigo/init_machine1.sh",
+        {
+          "path": "Installation/strigo/init_all.sh"
+        },
+        {
+          "path": "Installation/strigo/init_machine1.sh"
+        },
         {
           "script": "code-server.sh",
           "env": {
@@ -208,7 +213,9 @@ Example:
         "ec2_region": "eu-west-3"
       },
       "init_scripts": [
-        "Installation/strigo/init_all.sh"
+        {
+          "path": "Installation/strigo/init_all.sh"
+        }
       ],
       "post_launch_scripts": [],
       "webview_links": []
@@ -219,7 +226,7 @@ Example:
 
 ## Build package
 
-Building requirement is a Python environment >= 3.7.
+Building requirement is a Python environment >= 3.11.
 
 ### Python wheel
 

@@ -1,13 +1,13 @@
 version: 2.1
 
 orbs:
-  docker: circleci/docker@2.0.1
-  win: circleci/windows@2.4.1
+  docker: circleci/docker@2.2.0
+  win: circleci/windows@5.0.0
 
 jobs:
   build-wheel:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.11
     steps:
       - checkout
       - run:
@@ -22,10 +22,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install python 3.9
+          name: Install python 3.11
           command: |
-            $LatestPython39=(choco search python --exact --all-versions | Select-String -Pattern '(3\.9\.[\d]+)')[0].Matches.Value
-            choco install --force python --version=$LatestPython39
+            $LatestPython311=(choco search python --exact --all-versions | Select-String -Pattern '(3\.11\.[\d]+)')[0].Matches.Value
+            choco install --force python --version=$LatestPython311
       - run:
           name: Build exe
           command: .\build_win.ps1

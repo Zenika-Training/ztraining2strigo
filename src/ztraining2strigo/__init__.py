@@ -302,11 +302,16 @@ def retrieve(client: Client, args: argparse.Namespace) -> None:
 
 
 def update(client: Client, args: argparse.Namespace) -> None:
-    if not args.config.exists():
-        print(f"ERROR: Config file {args.config} does not exists.", file=sys.stderr)
-        exit(1)
+    config_path: Path = args.config
+    if not config_path.exists():
+        toml_config_path = config_path.with_suffix('.toml')
+        if config_path.as_posix() == 'strigo.json' and toml_config_path.exists():
+            config_path = toml_config_path
+        else:
+            print(f"ERROR: Config file {config_path} does not exists.", file=sys.stderr)
+            exit(1)
 
-    strigo_config = ClassConfig.load(args.config)
+    strigo_config = ClassConfig.load(config_path)
     _to_strigo(client, strigo_config, dry_run=args.dry_run, diff=args.diff)
 
 

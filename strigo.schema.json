@@ -139,28 +139,14 @@
             "description": "The list of init scripts to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
             "type": "array",
             "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "$ref": "#/$defs/script"
-                }
-              ]
+              "$ref": "#/$defs/script"
             }
           },
           "post_launch_scripts": {
             "description": "The list of post launch batch scripts (Windows only) to use for the machine, content of all the scripts will be concatenated into 1 init script in Strigo",
             "type": "array",
             "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "$ref": "#/$defs/script"
-                }
-              ]
+              "$ref": "#/$defs/script"
             }
           },
           "view_interface": {
@@ -220,25 +206,49 @@
 
   "$defs": {
     "script": {
-      "type": "object",
-      "properties": {
-        "script": {
-          "description": "The filename of the script",
-          "type": "string"
-        },
-        "version": {
-          "description": "The git version of the script to get",
+      "oneOf": [
+        {
+          "description": "A local script (deprecated in favor of '{\"path\": this_value}'",
           "type": "string",
-          "default": "main"
+          "deprecated": true
         },
-        "env": {
-          "description": "The mapping of environment variables for the script",
-          "type": "object"
+        {
+          "description": "A local script",
+          "type": "object",
+          "properties": {
+            "path": {
+              "description": "The path of the local script",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "description": "A remote script from https://github.com/Zenika-Training/strigo-init-script-libs",
+          "type": "object",
+          "properties": {
+            "script": {
+              "description": "The filename of the script",
+              "type": "string"
+            },
+            "version": {
+              "description": "The git version of the script to get",
+              "type": "string",
+              "default": "main"
+            },
+            "env": {
+              "description": "The mapping of environment variables for the script",
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "script"
+          ]
         }
-      },
-      "additionalProperties": false,
-      "required": [
-        "script"
       ]
     }
   }
