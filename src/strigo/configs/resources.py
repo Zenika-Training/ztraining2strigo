@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
-from ..models.resources import Resource, ViewInterface, WebviewLink
+from ..models.resources import STRIGO_DEFAULT_REGION, Resource, ViewInterface, WebviewLink
 from ..scripts import unique_script
 from ..scripts.configs import Script
 from . import get_scripts_folder
@@ -22,7 +22,6 @@ AWS_REGIONS = [
     'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-west-3',
     'eu-south-1', 'eu-north-1', 'me-south-1', 'sa-east-1'
 ]
-STRIGO_DEFAULT_REGION = 'eu-west-1'
 
 
 @dataclass
@@ -120,6 +119,10 @@ class ResourceImageConfig:
         raise NotImplementedError
 
     @property
+    def region_mapping(self) -> Optional[Dict[str, str]]:
+        raise NotImplementedError
+
+    @property
     def is_windows(self) -> bool:
         raise NotImplementedError
 
@@ -145,11 +148,11 @@ class ResourceImageConfig:
         raise NotImplementedError()
 
     @staticmethod
-    def from_strigo(is_custom_image: bool, image_id: str, image_user: str, ec2_region: Union[str, None]) -> ResourceImageConfig:
+    def from_strigo(is_custom_image: bool, image_id: str, image_user: str, ec2_region: Union[str, None], image_region_mapping: Union[Dict[str, str], None]) -> ResourceImageConfig:
         if not is_custom_image and image_id in AMIS_TO_OS:
             return PredefinedResourceImageConfig(AMIS_TO_OS[image_id])
         else:
-            return FullResourceImageConfig(image_id, image_user, ec2_region)
+            return FullResourceImageConfig(image_id, image_user, ec2_region, image_region_mapping)
 
 
 @dataclass
@@ -169,6 +172,10 @@ class PredefinedResourceImageConfig(ResourceImageConfig):
         return STRIGO_IMAGES[self.image_name].strigo_default_region
 
     @property
+    def region_mapping(self) -> Optional[Dict[str, str]]:
+        return STRIGO_IMAGES[self.image_name].amis
+
+    @property
     def is_windows(self) -> bool:
         return self.image_name.startswith('windows')
 
@@ -178,6 +185,7 @@ class FullResourceImageConfig(ResourceImageConfig):
     image_id: str
     image_user: str
     ec2_region: Optional[str] = None
+    image_region_mapping: Optional[Dict[str, str]] = field(default_factory=dict)
 
     @property
     def id(self) -> str:
@@ -192,11 +200,17 @@ class FullResourceImageConfig(ResourceImageConfig):
         return self.ec2_region
 
     @property
+    def region_mapping(self) -> Optional[Dict[str, str]]:
+        return self.image_region_mapping
+
+    @property
     def is_windows(self) -> bool:
         return False
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> FullResourceImageConfig:
+        d['image_region_mapping'] = d.get('image_region_mapping', {})
+        d['image_region_mapping'][d['ec2_region']] = d['image_id']
         return FullResourceImageConfig(**d)
 
 
@@ -236,7 +250,7 @@ class ResourceConfig:
 
     @staticmethod
     def from_strigo(resource: Resource) -> ResourceConfig:
-        image = ResourceImageConfig.from_strigo(resource.is_custom_image, resource.image_id, resource.image_user, resource.ec2_region)
+        image = ResourceImageConfig.from_strigo(resource.is_custom_image, resource.image_id, resource.image_user, resource.ec2_region, resource.image_region_mapping)
         scripts_folder = get_scripts_folder()
         normalized_resource_name = resource.name.replace('\\s', '_')
         init_scripts: List[Script] = []

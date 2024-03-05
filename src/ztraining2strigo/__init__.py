@@ -7,7 +7,7 @@ from difflib import unified_diff
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 
 from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
@@ -17,23 +17,23 @@ from strigo.client import Client
 from strigo.configs import bootstrap_config_file
 from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
-from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig, PredefinedResourceImageConfig, FullResourceImageConfig
-from strigo.scripts.configs import Script
+from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, FullResourceImageConfig, PredefinedResourceImageConfig, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
 from strigo.models.resources import Resource, ViewInterface, WebviewLink
+from strigo.scripts.configs import Script
 
 from .notes_parser import parse_notes
 
 VERSION = '0.1.0'
 
 
-def _prompt(prompt: str, is_valid: Callable[[str], bool] = lambda _: True, choices: List[str] = None) -> str:
+def _prompt(prompt: str, is_valid: Callable[[str], bool] = lambda a: a, choices: List[str] = None) -> str:
     choices_prompt = ''
     if choices:
         choices_prompt = f" ({', '.join(choices)})"
     while True:
         answer = input(f"{prompt}{choices_prompt}: ").strip()
-        if answer and is_valid(answer) and (not choices or answer in choices):
+        if is_valid(answer) and (not choices or answer in choices):
             break
         else:
             print('Invalid value, try again.', file=sys.stderr)
@@ -68,6 +68,10 @@ def _show_diff(a: str, b: str, prefix: str = '\t') -> None:
     sys.stdout.writelines(prefix + line for line in diff_lines)
 
 
+def _dict_to_display(d: Dict[str, Any]) -> str:
+    return '\n'.join(sorted(f"{k}: {v}" for k, v in d.items())) + '\n'
+
+
 def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False, diff: bool = False) -> None:
     messages_prefix = ''
     if dry_run:
@@ -81,11 +85,11 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
         print(f"Will update class name from {existing_class.name} to {config.name}")
         needs_update = True
     if config.strigo_description and config.strigo_description != existing_class.str_description:
-        print(f"Will update class description")
+        print("Will update class description")
         _show_diff(existing_class.str_description + '\n', config.strigo_description + '\n')
         needs_update = True
     if config.labels and set(config.labels) != set(existing_class.labels):
-        print(f"Will update class labels")
+        print("Will update class labels")
         _show_diff('\n'.join(sorted(existing_class.labels)) + '\n', '\n'.join(sorted(config.labels)) + '\n')
         needs_update = True
     if needs_update and not dry_run:
@@ -142,24 +146,25 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                         client, existing_class.id, resource.name, image.id, image.user,
                         resource.view_interface, resource.webview_links,
                         post_launch_script, init_script,
-                        image.region, resource.instance_type
+                        image.region, resource.instance_type,
+                        image.region_mapping
                     )
             else:
                 needs_update = False
+
                 if resource.name != existing_resource.name:
                     print(f"Will update machine {index} name from {existing_resource.name} to {resource.name}")
                     needs_update = True
                 if resource.instance_type != existing_resource.instance_type:
                     print(f"Will update machine {index} type from {existing_resource.instance_type} to {resource.instance_type}")
                     needs_update = True
-                if image.id != existing_resource.image_id:
-                    print(f"Will update machine {index} image from {existing_resource.image_id} to {image.id}")
+                if image.region_mapping != existing_resource.image_region_mapping:
+                    print(f"Will update machine {index} images")
+                    if diff:
+                        _show_diff(_dict_to_display(existing_resource.image_region_mapping), _dict_to_display(image.region_mapping))
                     needs_update = True
                 if image.user != existing_resource.image_user:
                     print(f"Will update machine {index} image user from {existing_resource.image_user} to {image.user}")
-                    needs_update = True
-                if image.region != existing_resource.ec2_region:
-                    print(f"Will update machine {index} image regions from {existing_resource.ec2_region} to {image.region}")
                     needs_update = True
                 if init_script != existing_resource.userdata and (init_script or existing_resource.userdata):
                     print(f"Will update machine {index} init script")
@@ -185,7 +190,8 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                             resource.name, image.id, image.user,
                             resource.view_interface, resource.webview_links,
                             post_launch_script, init_script,
-                            image.region, resource.instance_type
+                            image.region, resource.instance_type,
+                            image.region_mapping
                         )
 
 
@@ -210,7 +216,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
         except EOFError:
             break
 
-    labels = _prompt('Please enter Strigo class labels (comma-separated list, can be empty)')
+    labels = _prompt('Please enter Strigo class labels (comma-separated list, can be empty)', is_valid=lambda _: True)
     strigo_config.labels = [l.strip() for l in labels.split(',') if l]
 
     presentation = _prompt(
@@ -226,7 +232,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
     while True:
         def is_resource_name_valid(name: str) -> bool:
             if name in (r.name for r in resources):
-                print(f"ERROR: You already created a machine with same name.", file=sys.stderr)
+                print("ERROR: You already created a machine with same name.", file=sys.stderr)
                 return False
             return True
         resource_name = _prompt('Please enter machine name', is_valid=is_resource_name_valid)
@@ -263,7 +269,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
             while True:
                 def is_webview_link_name_valid(name: str) -> bool:
                     if name in (w.name for w in webview_links):
-                        print(f"ERROR: You already created a webview link with same name.", file=sys.stderr)
+                        print("ERROR: You already created a webview link with same name.", file=sys.stderr)
                         return False
                     return True
                 name = _prompt('Please enter webview link name', is_valid=is_webview_link_name_valid)

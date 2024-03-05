@@ -106,8 +106,7 @@
                 "properties": {
                   "image_id": {
                     "description": "The AMI ID",
-                    "type": "string",
-                    "pattern": "^ami-[0-9a-f]{8,}$"
+                    "$ref": "#/$defs/ec2_ami"
                   },
                   "image_user": {
                     "description": "The default user of the AMI",
@@ -115,20 +114,21 @@
                   },
                   "ec2_region": {
                     "description": "The region of the AMI",
-                    "type": "string",
-                    "enum": [
-                      "eu-west-1",
-                      "eu-west-2",
-                      "eu-west-3",
-                      "us-west-1",
-                      "us-west-2",
-                      "us-east-1",
-                      "us-east-2",
-                      "ca-central-1",
-                      "ap-southeast-1",
-                      "ap-southeast-2",
-                      "ap-northeast-1"
-                    ]
+                    "$ref": "#/$defs/ec2_region"
+                  },
+                  "image_region_mapping": {
+                    "description": "A list of alternative AMIs for other regions",
+                    "type": "object",
+                    "propertyNames": {
+                      "description": "The region of the AMI",
+                      "$ref": "#/$defs/ec2_region"
+                    },
+                    "patternProperties": {
+                      "": {
+                        "description": "The AMI ID",
+                        "$ref": "#/$defs/ec2_ami"
+                      }
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -227,6 +227,26 @@
         "windows-server-2016",
         "windows-server-2019",
         "centos-7.9"
+      ]
+    },
+    "ec2_ami": {
+      "type": "string",
+      "pattern": "^ami-[0-9a-f]{8,}$"
+    },
+    "ec2_region": {
+      "type": "string",
+      "enum": [
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "us-west-1",
+        "us-west-2",
+        "us-east-1",
+        "us-east-2",
+        "ca-central-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-northeast-1"
       ]
     },
     "script": {

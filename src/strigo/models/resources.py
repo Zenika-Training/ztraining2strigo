@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional
 from ..scripts import normalize_script
 from . import build_object
 
+STRIGO_DEFAULT_REGION = 'eu-west-1'
+
 
 class ViewInterface(str, Enum):
     TERMINAL = 'terminal'
@@ -43,6 +45,7 @@ class Resource:
     userdata: Optional[str] = None
     ec2_region: Optional[str] = None
     instance_type: Optional[str] = None
+    image_region_mapping: Optional[Dict[str, str]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -58,4 +61,6 @@ class Resource:
         d['webview_links'] = [WebviewLink.from_dict(e) for e in d['webview_links']]
         d['post_launch_script'] = normalize_script(d.get('post_launch_script', None))
         d['userdata'] = normalize_script(d.get('userdata', None))
+        d['image_region_mapping'] = d.get('image_region_mapping', {})
+        d['image_region_mapping'][d.get('ec2_region', STRIGO_DEFAULT_REGION)] = d['image_id']
         return build_object(Resource, d)
