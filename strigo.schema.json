@@ -6,8 +6,7 @@
   "type": "object",
   "properties": {
     "$schema": {
-      "type": "string",
-      "const": "https://raw.githubusercontent.com/Zenika-Training/ztraining2strigo/main/strigo.schema.json"
+      "type": "string"
     },
     "id": {
       "description": "The Strigo ID of the class, shouldn't be changed",
@@ -79,20 +78,25 @@
             "description": "The machine image, can be the normalized name of the preconfigured Strigo images (lower case, space replaced by simple hyphen `-`), or a custom image",
             "oneOf": [
               {
-                "type": "string",
-                "enum": [
-                  "debian-8.7",
-                  "debian-11",
-                  "ubuntu-16.04.2",
-                  "ubuntu-20.04",
-                  "amazon-linux-v2.0.20221210.1",
-                  "docker-17.09.0-ce",
-                  "windows-server-2016",
-                  "windows-server-2019",
-                  "centos-7.9"
+                "description": "A predefined image (deprecated in favor of '{\"image_name\": this_value}'",
+                "$ref": "#/$defs/strigo_image_name",
+                "deprecated": true
+              },
+              {
+                "description": "A predefined image",
+                "type": "object",
+                "properties": {
+                  "image_name": {
+                    "$ref": "#/$defs/strigo_image_name"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "image_name"
                 ]
               },
               {
+                "description": "A custom image",
                 "type": "object",
                 "properties": {
                   "image_id": {
@@ -205,6 +209,20 @@
   ],
 
   "$defs": {
+    "strigo_image_name": {
+      "type": "string",
+      "enum": [
+        "debian-8.7",
+        "debian-11",
+        "ubuntu-16.04.2",
+        "ubuntu-20.04",
+        "amazon-linux-v2.0.20221210.1",
+        "docker-17.09.0-ce",
+        "windows-server-2016",
+        "windows-server-2019",
+        "centos-7.9"
+      ]
+    },
     "script": {
       "oneOf": [
         {

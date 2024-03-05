@@ -136,34 +136,104 @@ AMIS_TO_OS = {v.strigo_default_ami: k for k, v in STRIGO_IMAGES.items()}
 
 @dataclass
 class ResourceImageConfig:
+    @property
+    def id(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def user(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def region(self) -> Optional[str]:
+        raise NotImplementedError
+
+    @property
+    def is_windows(self) -> bool:
+        raise NotImplementedError
+
+    @staticmethod
+    def new(value: Union[str, Dict[str, Any]]) -> ResourceImageConfig:
+        image_name = None
+        if isinstance(value, str):
+            image_name = value
+        elif isinstance(value, dict):
+            if 'image_name' in value:
+                image_name = value['image_name']
+            elif 'image_id' in value:
+                return FullResourceImageConfig.from_dict(value)
+        if image_name:
+            if image_name not in STRIGO_IMAGES:
+                raise ValueError(
+                    f"Unknown image name: {image_name}\n"
+                    f"Available image names are: {', '.join(STRIGO_IMAGES.keys())}\n"
+                    f"Or use a custom image with '{{image_id: {image_name}, image_user: <image_user>, ec2_region: <ec2_region>}}'"
+                )
+            return PredefinedResourceImageConfig(image_name)
+
+        raise NotImplementedError()
+
+    @staticmethod
+    def from_strigo(is_custom_image: bool, image_id: str, image_user: str, ec2_region: Union[str, None]) -> ResourceImageConfig:
+        if not is_custom_image and image_id in AMIS_TO_OS:
+            return PredefinedResourceImageConfig(AMIS_TO_OS[image_id])
+        else:
+            return FullResourceImageConfig(image_id, image_user, ec2_region)
+
+
+@dataclass
+class PredefinedResourceImageConfig(ResourceImageConfig):
+    image_name: str
+
+    @property
+    def id(self) -> str:
+        return STRIGO_IMAGES[self.image_name].strigo_default_ami
+
+    @property
+    def user(self) -> str:
+        return STRIGO_IMAGES[self.image_name].user
+
+    @property
+    def region(self) -> Optional[str]:
+        return STRIGO_IMAGES[self.image_name].strigo_default_region
+
+    @property
+    def is_windows(self) -> bool:
+        return self.image_name.startswith('windows')
+
+
+@dataclass
+class FullResourceImageConfig(ResourceImageConfig):
     image_id: str
     image_user: str
     ec2_region: Optional[str] = None
 
-    @staticmethod
-    def from_dict(d: Dict[str, Any]) -> ResourceImageConfig:
-        return ResourceImageConfig(**d)
+    @property
+    def id(self) -> str:
+        return self.image_id
+
+    @property
+    def user(self) -> str:
+        return self.image_user
+
+    @property
+    def region(self) -> Optional[str]:
+        return self.ec2_region
+
+    @property
+    def is_windows(self) -> bool:
+        return False
 
     @staticmethod
-    def from_image_name(image_name: str) -> ResourceImageConfig:
-        if image_name not in STRIGO_IMAGES:
-            raise ValueError("\n".join([
-                f"Unknown image name: {image_name}",
-                f"Available image names are: {', '.join(STRIGO_IMAGES.keys())}",
-                f"Or use a custom image with '{{image_id: {image_name}, image_user: <image_user>, ec2_region: <ec2_region>}}'"
-            ]))
-        image_aws_config = STRIGO_IMAGES[image_name]
-        ec2_region = image_aws_config.strigo_default_region
-        image_id = image_aws_config.amis[ec2_region]
-        image_user = image_aws_config.user
-        return ResourceImageConfig(image_id, image_user, ec2_region)
+    def from_dict(d: Dict[str, Any]) -> FullResourceImageConfig:
+        return FullResourceImageConfig(**d)
 
 
 @dataclass
 class ResourceConfig:
     name: str
     instance_type: str
-    image: Union[str, ResourceImageConfig]
+    image: ResourceImageConfig
     is_windows: bool = False
     init_scripts: List[Script] = field(default_factory=list)
     post_launch_scripts: List[Script] = field(default_factory=list)
@@ -178,10 +248,9 @@ class ResourceConfig:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> ResourceConfig:
-        if not isinstance(d['image'], str):
-            d['image'] = ResourceImageConfig.from_dict(d['image'])
+        d['image'] = ResourceImageConfig.new(d['image'])
         if 'is_windows' not in d:
-            d['is_windows'] = _is_windows(d['image'])
+            d['is_windows'] = d['image'].is_windows
         init_scripts = []
         for init_script in d['init_scripts']:
             init_scripts.append(Script.new_init_script(init_script, d['is_windows']))
@@ -196,19 +265,15 @@ class ResourceConfig:
 
     @staticmethod
     def from_strigo(resource: Resource) -> ResourceConfig:
-        if not resource.is_custom_image:
-            image = _parse_image(resource.image_id, resource.image_user, resource.ec2_region)
-        else:
-            image = ResourceImageConfig(resource.image_id, resource.image_user, resource.ec2_region)
-        is_windows = _is_windows(image)
+        image = ResourceImageConfig.from_strigo(resource.is_custom_image, resource.image_id, resource.image_user, resource.ec2_region)
         scripts_folder = get_scripts_folder()
         normalized_resource_name = resource.name.replace('\\s', '_')
         init_scripts: List[Script] = []
         if resource.userdata:
-            script_path = scripts_folder / f"init_{normalized_resource_name}.{'ps1' if is_windows else 'sh'}"
+            script_path = scripts_folder / f"init_{normalized_resource_name}.{'ps1' if image.is_windows else 'sh'}"
             with script_path.open('wt') as f:
                 f.write(resource.userdata.replace('<powershell>', '').replace('</powershell>', '').strip() + '\n')
-            init_scripts.append(Script.new_init_script(script_path.as_posix(), is_windows))
+            init_scripts.append(Script.new_init_script(script_path.as_posix(), image.is_windows))
         post_launch_scripts: List[Script] = []
         if resource.post_launch_script:
             script_path = scripts_folder / f"post_launch_{normalized_resource_name}.ps1"
@@ -219,17 +284,9 @@ class ResourceConfig:
             name=resource.name,
             instance_type=resource.instance_type,
             image=image,
-            is_windows=is_windows,
+            is_windows=image.is_windows,
             view_interface=resource.view_interface,
             webview_links=resource.webview_links,
             init_scripts=init_scripts,
             post_launch_scripts=post_launch_scripts
         )
-
-
-def _is_windows(image: Union[str, ResourceImageConfig]) -> bool:
-    return isinstance(image, str) and image.startswith('windows')
-
-
-def _parse_image(image_id: str, image_user: str, ec2_region: str) -> Union[str, ResourceImageConfig]:
-    return AMIS_TO_OS.get(image_id, ResourceImageConfig(image_id, image_user, ec2_region))
