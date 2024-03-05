@@ -19,7 +19,6 @@ AWS_REGIONS = [
     'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-west-3',
     'eu-south-1', 'eu-north-1', 'me-south-1', 'sa-east-1'
 ]
-STRIGO_OLD_DEFAULT_REGION = 'eu-central-1'
 STRIGO_DEFAULT_REGION = 'eu-west-1'
 
 
@@ -30,7 +29,7 @@ class ImageAWSConfig:
 
     @property
     def strigo_default_region(self):
-        return STRIGO_DEFAULT_REGION if STRIGO_DEFAULT_REGION in self.amis else STRIGO_OLD_DEFAULT_REGION
+        return STRIGO_DEFAULT_REGION
 
     @property
     def strigo_default_ami(self):
@@ -41,8 +40,7 @@ STRIGO_IMAGES = {
     'debian-8.7': ImageAWSConfig(
         user='admin',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-061026464372bc7bf',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-5900cc36'
+            STRIGO_DEFAULT_REGION: 'ami-061026464372bc7bf'
         }
     ),
     'debian-11': ImageAWSConfig(
@@ -51,43 +49,23 @@ STRIGO_IMAGES = {
             STRIGO_DEFAULT_REGION: 'ami-010716a347cc5be84'
         }
     ),
-    'fedora-26': ImageAWSConfig(
-        user='fedora',
-        amis={
-            STRIGO_OLD_DEFAULT_REGION: 'ami-5364c43c'
-        }
-    ),
-    'ubuntu-14.04.5': ImageAWSConfig(
-        user='ubuntu',
-        amis={
-            STRIGO_OLD_DEFAULT_REGION: 'ami-e6de6a89'
-        }
-    ),
     'ubuntu-16.04.2': ImageAWSConfig(
         user='ubuntu',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-064be016683d0de06',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-1e339e71'
+            STRIGO_DEFAULT_REGION: 'ami-064be016683d0de06'
         }
     ),
     'ubuntu-20.04': ImageAWSConfig(
         user='ubuntu',
         amis={
             STRIGO_DEFAULT_REGION: 'ami-0754c1bf35f85d01f',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-0feb4583c4b758dea',
             'eu-west-3': 'ami-077e7b9090435f0bd'
         }
     ),
-    'amazon-linux-2017.09.1': ImageAWSConfig(
-        user='ec2-user',
+    'ubuntu-22.04': ImageAWSConfig(
+        user='ubuntu',
         amis={
-            STRIGO_OLD_DEFAULT_REGION: 'ami-ac442ac3'
-        }
-    ),
-    'amazon-linux-v2-2017.09.1': ImageAWSConfig(
-        user='ec2-user',
-        amis={
-            STRIGO_OLD_DEFAULT_REGION: 'ami-1b2bb774'
+            STRIGO_DEFAULT_REGION: 'ami-06fd571d4b092ea39'
         }
     ),
     'amazon-linux-v2.0.20221210.1': ImageAWSConfig(
@@ -96,38 +74,28 @@ STRIGO_IMAGES = {
             STRIGO_DEFAULT_REGION: 'ami-0455da2bdc38b251e'
         }
     ),
-    'centos-7': ImageAWSConfig(
-        user='centos',
-        amis={
-            STRIGO_OLD_DEFAULT_REGION: 'ami-337be65c'
-        }
-    ),
     'centos-7.9': ImageAWSConfig(
         user='centos',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-06d5af736376c3798',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-08b6d44b4f6f7b279'
+            STRIGO_DEFAULT_REGION: 'ami-06d5af736376c3798'
         }
     ),
     'docker-17.09.0-ce': ImageAWSConfig(
         user='ubuntu',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-0d601c1d4166c5e45',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-614dcd0e'
+            STRIGO_DEFAULT_REGION: 'ami-0d601c1d4166c5e45'
         }
     ),
     'windows-server-2016': ImageAWSConfig(
         user='Administrator',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-0afcd9cce919e7a9c',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-0ea21e760f354e854'
+            STRIGO_DEFAULT_REGION: 'ami-0afcd9cce919e7a9c'
         }
     ),
     'windows-server-2019': ImageAWSConfig(
         user='Administrator',
         amis={
-            STRIGO_DEFAULT_REGION: 'ami-090d5efe85c2be3d1',
-            STRIGO_OLD_DEFAULT_REGION: 'ami-055a56647b41498c3'
+            STRIGO_DEFAULT_REGION: 'ami-090d5efe85c2be3d1'
         }
     )
 }

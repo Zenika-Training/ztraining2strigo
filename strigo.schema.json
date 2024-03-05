@@ -216,6 +216,7 @@
         "debian-11",
         "ubuntu-16.04.2",
         "ubuntu-20.04",
+        "ubuntu-22.04",
         "amazon-linux-v2.0.20221210.1",
         "docker-17.09.0-ce",
         "windows-server-2016",
