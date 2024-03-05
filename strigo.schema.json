@@ -71,7 +71,12 @@
             "enum": [
               "t3.medium",
               "t3.large",
-              "t3.xlarge"
+              "t3.xlarge",
+              "t3a.micro",
+              "t3a.small",
+              "t3a.medium",
+              "t3a.large",
+              "t3a.xlarge"
             ]
           },
           "image": {
