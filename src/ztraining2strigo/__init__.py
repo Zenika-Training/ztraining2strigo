@@ -18,6 +18,7 @@ from strigo.configs import bootstrap_config_file
 from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
 from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
+from strigo.scripts.configs import Script
 from strigo.models.classes import Class
 from strigo.models.resources import Resource, ViewInterface, WebviewLink
 
@@ -244,19 +245,19 @@ def create(client: Client, args: argparse.Namespace) -> None:
         else:
             is_windows = image.startswith('windows')
 
-        init_scripts: List[str] = []
+        init_scripts: List[Script] = []
         if _confirm('Do you want to add init scripts?'):
             while True:
                 init_script = _prompt('Please enter path to an init script', is_valid=_is_valid_path)
-                init_scripts.append(init_script)
+                init_scripts.append(Script.new_init_script(init_script, is_windows))
                 if not _confirm('Do you want to add another init script?'):
                     break
 
-        post_launch_scripts: List[str] = []
+        post_launch_scripts: List[Script] = []
         if _confirm('Do you want to add post launch scripts?'):
             while True:
                 post_launch_script = _prompt('Please enter path to a post launch script', is_valid=_is_valid_path)
-                post_launch_scripts.append(post_launch_script)
+                post_launch_scripts.append(Script.new_post_launch_script(post_launch_script))
                 if not _confirm('Do you want to add another post launch script?'):
                     break
 
