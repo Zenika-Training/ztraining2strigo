@@ -7,7 +7,7 @@ from difflib import unified_diff
 from getpass import getpass
 from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 
 from strigo.api import UNDEFINED
 from strigo.api import classes as classes_api
@@ -17,23 +17,23 @@ from strigo.client import Client
 from strigo.configs import bootstrap_config_file
 from strigo.configs.classes import ClassConfig
 from strigo.configs.presentations import PresentationConfig
-from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, ResourceConfig, ResourceImageConfig
-from strigo.scripts.configs import Script
+from strigo.configs.resources import AWS_REGIONS, STRIGO_DEFAULT_INSTANCE_TYPES, STRIGO_IMAGES, FullResourceImageConfig, PredefinedResourceImageConfig, ResourceConfig, ResourceImageConfig
 from strigo.models.classes import Class
 from strigo.models.resources import Resource, ViewInterface, WebviewLink
+from strigo.scripts.configs import Script
 
 from .notes_parser import parse_notes
 
 VERSION = '0.1.0'
 
 
-def _prompt(prompt: str, is_valid: Callable[[str], bool] = lambda _: True, choices: List[str] = None) -> str:
+def _prompt(prompt: str, is_valid: Callable[[str], bool] = lambda a: a, choices: List[str] = None) -> str:
     choices_prompt = ''
     if choices:
         choices_prompt = f" ({', '.join(choices)})"
     while True:
         answer = input(f"{prompt}{choices_prompt}: ").strip()
-        if answer and is_valid(answer) and (not choices or answer in choices):
+        if is_valid(answer) and (not choices or answer in choices):
             break
         else:
             print('Invalid value, try again.', file=sys.stderr)
@@ -68,6 +68,10 @@ def _show_diff(a: str, b: str, prefix: str = '\t') -> None:
     sys.stdout.writelines(prefix + line for line in diff_lines)
 
 
+def _dict_to_display(d: Dict[str, Any]) -> str:
+    return '\n'.join(sorted(f"{k}: {v}" for k, v in d.items())) + '\n'
+
+
 def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None, dry_run: bool = False, diff: bool = False) -> None:
     messages_prefix = ''
     if dry_run:
@@ -81,11 +85,11 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
         print(f"Will update class name from {existing_class.name} to {config.name}")
         needs_update = True
     if config.strigo_description and config.strigo_description != existing_class.str_description:
-        print(f"Will update class description")
+        print("Will update class description")
         _show_diff(existing_class.str_description + '\n', config.strigo_description + '\n')
         needs_update = True
     if config.labels and set(config.labels) != set(existing_class.labels):
-        print(f"Will update class labels")
+        print("Will update class labels")
         _show_diff('\n'.join(sorted(existing_class.labels)) + '\n', '\n'.join(sorted(config.labels)) + '\n')
         needs_update = True
     if needs_update and not dry_run:
@@ -131,8 +135,6 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                 resources_api.delete(client, existing_class.id, existing_resource.id)
         else:
             image = resource.image
-            if isinstance(image, str):
-                image = ResourceImageConfig.from_image_name(image)
 
             init_script = resource.unique_init_script() or UNDEFINED
             post_launch_script = resource.unique_post_launch_script() or UNDEFINED
@@ -141,27 +143,28 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                 print(f"{messages_prefix}Creating machine {index} named {resource.name}")
                 if not dry_run:
                     resources_api.create(
-                        client, existing_class.id, resource.name, image.image_id, image.image_user,
+                        client, existing_class.id, resource.name, image.id, image.user,
                         resource.view_interface, resource.webview_links,
                         post_launch_script, init_script,
-                        image.ec2_region, resource.instance_type
+                        image.region, resource.instance_type,
+                        image.region_mapping
                     )
             else:
                 needs_update = False
+
                 if resource.name != existing_resource.name:
                     print(f"Will update machine {index} name from {existing_resource.name} to {resource.name}")
                     needs_update = True
                 if resource.instance_type != existing_resource.instance_type:
                     print(f"Will update machine {index} type from {existing_resource.instance_type} to {resource.instance_type}")
                     needs_update = True
-                if image.image_id != existing_resource.image_id:
-                    print(f"Will update machine {index} image from {existing_resource.image_id} to {image.image_id}")
+                if image.region_mapping != existing_resource.image_region_mapping:
+                    print(f"Will update machine {index} images")
+                    if diff:
+                        _show_diff(_dict_to_display(existing_resource.image_region_mapping), _dict_to_display(image.region_mapping))
                     needs_update = True
-                if image.image_user != existing_resource.image_user:
-                    print(f"Will update machine {index} image user from {existing_resource.image_user} to {image.image_user}")
-                    needs_update = True
-                if image.ec2_region != existing_resource.ec2_region:
-                    print(f"Will update machine {index} image regions from {existing_resource.ec2_region} to {image.ec2_region}")
+                if image.user != existing_resource.image_user:
+                    print(f"Will update machine {index} image user from {existing_resource.image_user} to {image.user}")
                     needs_update = True
                 if init_script != existing_resource.userdata and (init_script or existing_resource.userdata):
                     print(f"Will update machine {index} init script")
@@ -184,10 +187,11 @@ def _to_strigo(client: Client, config: ClassConfig, existing_class: Class = None
                     if not dry_run:
                         resources_api.update(
                             client, existing_class.id, existing_resource.id,
-                            resource.name, image.image_id, image.image_user,
+                            resource.name, image.id, image.user,
                             resource.view_interface, resource.webview_links,
                             post_launch_script, init_script,
-                            image.ec2_region, resource.instance_type
+                            image.region, resource.instance_type,
+                            image.region_mapping
                         )
 
 
@@ -212,7 +216,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
         except EOFError:
             break
 
-    labels = _prompt('Please enter Strigo class labels (comma-separated list, can be empty)')
+    labels = _prompt('Please enter Strigo class labels (comma-separated list, can be empty)', is_valid=lambda _: True)
     strigo_config.labels = [l.strip() for l in labels.split(',') if l]
 
     presentation = _prompt(
@@ -228,28 +232,27 @@ def create(client: Client, args: argparse.Namespace) -> None:
     while True:
         def is_resource_name_valid(name: str) -> bool:
             if name in (r.name for r in resources):
-                print(f"ERROR: You already created a machine with same name.", file=sys.stderr)
+                print("ERROR: You already created a machine with same name.", file=sys.stderr)
                 return False
             return True
         resource_name = _prompt('Please enter machine name', is_valid=is_resource_name_valid)
         instance_type = _prompt('Please enter machine type', choices=STRIGO_DEFAULT_INSTANCE_TYPES)
-        image = _prompt('Please enter machine image', choices=list(STRIGO_IMAGES.keys()) + ['custom'])
-        is_windows = False
+        image_name = _prompt('Please enter machine image', choices=list(STRIGO_IMAGES.keys()) + ['custom'])
         view_interface = None
-        if image == 'custom':
+        if image_name == 'custom':
             image_id = _prompt('Please enter AMI ("ami-...")', is_valid=lambda id: id.startswith('ami-'))
             image_user = _prompt('Please enter image user')
             image_region = _prompt('Please enter image region', is_valid=lambda r: r in AWS_REGIONS)
-            image = ResourceImageConfig(image_id, image_user, image_region)
+            image: ResourceImageConfig = FullResourceImageConfig(image_id, image_user, image_region)
             view_interface = _prompt('Please enter machine view interface', choices=[e.value for e in ViewInterface])
         else:
-            is_windows = image.startswith('windows')
+            image = PredefinedResourceImageConfig(image_name)
 
         init_scripts: List[Script] = []
         if _confirm('Do you want to add init scripts?'):
             while True:
                 init_script = _prompt('Please enter path to an init script', is_valid=_is_valid_path)
-                init_scripts.append(Script.new_init_script(init_script, is_windows))
+                init_scripts.append(Script.new_init_script(init_script, image.is_windows))
                 if not _confirm('Do you want to add another init script?'):
                     break
 
@@ -266,7 +269,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
             while True:
                 def is_webview_link_name_valid(name: str) -> bool:
                     if name in (w.name for w in webview_links):
-                        print(f"ERROR: You already created a webview link with same name.", file=sys.stderr)
+                        print("ERROR: You already created a webview link with same name.", file=sys.stderr)
                         return False
                     return True
                 name = _prompt('Please enter webview link name', is_valid=is_webview_link_name_valid)
@@ -275,7 +278,7 @@ def create(client: Client, args: argparse.Namespace) -> None:
                 if not _confirm('Do you want to add another webview link?'):
                     break
 
-        resource = ResourceConfig(resource_name, instance_type, image, is_windows, init_scripts, post_launch_scripts, view_interface, webview_links)
+        resource = ResourceConfig(resource_name, instance_type, image, image.is_windows, init_scripts, post_launch_scripts, view_interface, webview_links)
         resources.append(resource)
         if not _confirm('Do you want to add another machine?'):
             break

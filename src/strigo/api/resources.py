@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import annotations
 
-from typing import List, Union
+from typing import Dict, List, Union
 
 from ..client import Client
 from ..models.resources import Resource, ViewInterface, WebviewLink
@@ -19,7 +19,8 @@ def get(client: Client, class_id: str, resource_id: str) -> Resource:
 def create(client: Client, class_id: str, name: str, image_id: str, image_user: str,
            view_interface: Union[ViewInterface, UNDEFINED_TYPE], webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED,
            post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED, userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
+           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED,
+           image_region_mapping: Union[Dict[str, str], UNDEFINED_TYPE] = UNDEFINED) -> Resource:
     data = {
         'name': name,
         'image_id': image_id,
@@ -37,13 +38,16 @@ def create(client: Client, class_id: str, name: str, image_id: str, image_user: 
         data['ec2_region'] = ec2_region
     if instance_type is not UNDEFINED:
         data['instance_type'] = instance_type
+    if image_region_mapping is not UNDEFINED:
+        data['image_region_mapping'] = image_region_mapping
     return client.post(f"/classes/{class_id}/resources", data, Resource)
 
 
 def update(client: Client, class_id: str, resource_id: str, name: str, image_id: str, image_user: str,
            view_interface: Union[ViewInterface, UNDEFINED_TYPE], webview_links: Union[List[WebviewLink], UNDEFINED_TYPE] = UNDEFINED,
            post_launch_script: Union[str, UNDEFINED_TYPE] = UNDEFINED, userdata: Union[str, UNDEFINED_TYPE] = UNDEFINED,
-           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED) -> Resource:
+           ec2_region: Union[str, UNDEFINED_TYPE] = UNDEFINED, instance_type: Union[str, UNDEFINED_TYPE] = UNDEFINED,
+           image_region_mapping: Union[Dict[str, str], UNDEFINED_TYPE] = UNDEFINED) -> Resource:
     data = {}
     if name is not UNDEFINED:
         data['name'] = name
@@ -63,6 +67,8 @@ def update(client: Client, class_id: str, resource_id: str, name: str, image_id:
         data['ec2_region'] = ec2_region
     if instance_type is not UNDEFINED:
         data['instance_type'] = instance_type
+    if image_region_mapping is not UNDEFINED:
+        data['image_region_mapping'] = image_region_mapping
     return client.patch(f"/classes/{class_id}/resources/{resource_id}", data, Resource)
 
 
