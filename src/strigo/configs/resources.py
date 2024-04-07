@@ -70,6 +70,21 @@ STRIGO_IMAGES = {
             STRIGO_DEFAULT_REGION: 'ami-06fd571d4b092ea39'
         }
     ),
+    # https://help.strigo.io/en/articles/4248818-set-up-linux-based-labs-with-a-desktop-interface
+    'ubuntu-22.04-desktop': ImageAWSConfig(
+        user='ubuntu',
+        amis={
+            STRIGO_DEFAULT_REGION: 'ami-0b32f4a77e48fcb24',
+            'eu-west-2': 'ami-032c3572d45404ef3',
+            'eu-west-3': 'ami-0842ef6d5d28dfc9d',
+            'us-west-1': 'ami-0e07d64097c85b619',
+            'us-west-2': 'ami-0c66d9067fb13e38c',
+            'us-east-1': 'ami-011f6718a3b3f313a',
+            'us-east-2': 'ami-0b2e72cfc3a8d6793',
+            'ap-southeast-1': 'ami-06e63b7a85515d728',
+            'ap-northeast-1': 'ami-03cc6320a82893b19'
+        }
+    ),
     'amazon-linux-v2.0.20221210.1': ImageAWSConfig(
         user='ec2-user',
         amis={
